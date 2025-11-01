@@ -14,8 +14,8 @@ def load_model():
     
 def feature_engineering(df):
     """Lakukan feature engineering yang sama seperti di training."""
-    if 'Projects' in df.columns and 'YearsAtCompany' in df.columns:
-        df['Projects_per_Years'] = df['Projects'] / df['YearsAtCompany']
+    if 'Projects' in df.columns and 'Years_at_Company' in df.columns:
+        df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
         df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
         df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
     return df
