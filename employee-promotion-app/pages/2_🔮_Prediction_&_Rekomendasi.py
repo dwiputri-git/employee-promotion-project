@@ -19,6 +19,7 @@ def feature_engineering(df):
         df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
         df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
         df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
+        df['Project_Level'] = pd.qcut(df['Projects_per_Years'], q=4, labels=['Low','Moderate','High','Very High'])
     if 'Training_Hours' in df.columns:
         df['Training_Level'] = pd.qcut(df['Training_Hours'], q=5, labels=['Very Low','Low','Moderate','High','Very High'])
     if 'Leadership_Score' in df.columns:
