@@ -11,6 +11,14 @@ def load_model():
     model_path = os.path.join(base_path, "model", "model.pkl")
     model = joblib.load(model_path)
     return model
+    
+def feature_engineering(df):
+    """Lakukan feature engineering yang sama seperti di training."""
+    if 'Projects' in df.columns and 'YearsAtCompany' in df.columns:
+        df['Projects_per_Years'] = df['Projects'] / df['YearsAtCompany']
+        df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
+        df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
+    return df
 
 def show_prediction_page():
     st.title("🔮 Prediction & Rekomendasi")
@@ -22,7 +30,9 @@ def show_prediction_page():
         df = pd.read_csv(uploaded_file, sep=';')
         st.write("Data yang diunggah:")
         st.dataframe(df.head())
-
+        
+        df = feature_engineering(df)
+        
         model = load_model()
         pred = model.predict(df)
         df['promotion_prediction'] = pred
