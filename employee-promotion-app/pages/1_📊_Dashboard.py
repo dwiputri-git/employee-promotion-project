@@ -8,7 +8,7 @@ st.set_page_config(page_title="Dashboard", layout="wide")
 @st.cache_data
 def load_real_data():
     base_path = os.path.dirname(os.path.dirname(__file__))  # naik satu folder dari /pages
-    data_path = os.path.join(base_path, "data", "employee_promotion_dataset.csv")
+    data_path = os.path.join(base_path, "data", "dataset_cleaning.csv")
     df = pd.read_csv(data_path, sep = ';')
     return df
 
