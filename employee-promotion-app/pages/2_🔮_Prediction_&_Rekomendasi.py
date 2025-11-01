@@ -19,7 +19,7 @@ def show_prediction_page():
     uploaded_file = st.file_uploader("Upload file CSV", type=["csv"])
 
     if uploaded_file:
-        df = pd.read_csv(uploaded_file)
+        df = pd.read_csv(uploaded_file, sep=';')
         st.write("Data yang diunggah:")
         st.dataframe(df.head())
 
