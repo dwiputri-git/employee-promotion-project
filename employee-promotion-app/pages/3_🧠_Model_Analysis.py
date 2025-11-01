@@ -76,18 +76,20 @@ def show_model_analysis():
 
     st.write(f"✅ Data shape: {X_transformed.shape}, SHAP shape: {shap_values_to_use.shape}")
 
-    # --- Plot summary
+    # --- Pastikan SHAP value dan data dalam DataFrame agar plot bisa tampil
+    shap_df = pd.DataFrame(shap_values_to_use, columns=feature_names)
+    X_df = pd.DataFrame(X_transformed, columns=feature_names)
+
     st.subheader("📊 SHAP Summary Plot")
     fig, ax = plt.subplots(figsize=(10, 6))
-    shap.summary_plot(shap_values_to_use, X_transformed, feature_names=feature_names, show=False)
-    st.pyplot(fig)
+    shap.summary_plot(shap_df.values, X_df, feature_names=feature_names, show=False)
+    st.pyplot(fig, clear_figure=True)
 
     # --- Plot bar
     with st.expander("📈 SHAP Feature Importance (Bar Chart)"):
         fig2, ax2 = plt.subplots(figsize=(10, 6))
-        shap.summary_plot(shap_values_to_use, X_transformed, feature_names=feature_names, plot_type="bar", show=False)
-        st.pyplot(fig2)
-
+        shap.summary_plot(shap_df.values, X_df, feature_names=feature_names, plot_type="bar", show=False)
+        st.pyplot(fig2, clear_figure=True)
     st.markdown("""
     **Interpretasi singkat:**
     - Fitur di bagian atas memiliki pengaruh paling besar terhadap keputusan promosi.
