@@ -39,7 +39,7 @@ def show_prediction_page():
     if uploaded_file:
         df = pd.read_csv(uploaded_file, sep=';')
         st.write("Data yang diunggah:")
-        st.dataframe(df.head())
+        st.dataframe(df, height=400, use_container_width=False)
 
         model = load_model()
 
@@ -62,8 +62,8 @@ def show_prediction_page():
         df['promotion_prediction'] = pred
 
         st.success("✅ Prediksi selesai!")
-        st.dataframe(df.head())
-
+        st.dataframe(df, height=400, use_container_width=False)
+        
         st.subheader("📈 Rekomendasi")
         st.markdown("""
         - Tingkatkan **leadership score** dan **training score** untuk karyawan yang belum layak promosi.  
