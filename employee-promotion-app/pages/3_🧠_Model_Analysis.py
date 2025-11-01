@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 import shap
 import matplotlib.pyplot as plt
@@ -14,6 +15,14 @@ def load_model():
     model = joblib.load(model_path)
     return model
 
+# 🧩 Sama seperti pipeline training
+def feature_engineering(df):
+    if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
+        df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
+        df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
+        df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
+    return df
+
 def show_model_analysis():
     st.title("🧠 Model Analysis")
     st.markdown("Analisis feature importance dan interpretasi model menggunakan SHAP.")
@@ -24,6 +33,8 @@ def show_model_analysis():
     base_path = os.path.dirname(os.path.dirname(__file__))
     data_path = os.path.join(base_path, "data", "employee_promotion_dataset.csv")
     df = pd.read_csv(data_path, sep=';')
+    df = feature_engineering(df)  # ✅ Tambahkan feature engineering di sini
+
     X = df.drop(columns=['Promotion_Eligible'], errors='ignore')
 
     # --- Pisahkan preprocessor dan model RandomForest dari pipeline
