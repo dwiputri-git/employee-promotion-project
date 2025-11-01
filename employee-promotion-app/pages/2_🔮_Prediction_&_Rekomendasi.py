@@ -45,6 +45,7 @@ def show_prediction_page():
 
         # 🧩 Feature engineering
         df = feature_engineering(df)
+        df_display = df.copy()  # simpan versi lengkap untuk ditampilkan
 
         # 🧩 Samakan kolom dengan model
         expected_cols = model.feature_names_in_
@@ -55,14 +56,18 @@ def show_prediction_page():
             for col in missing_cols:
                 df[col] = 0
 
-        df = df[expected_cols]
+        df_model = df[expected_cols]  # versi buat model
 
         # 🔮 Prediksi
-        pred = model.predict(df)
-        df['promotion_prediction'] = pred
+        pred = model.predict(df_model)
+        df_display['promotion_prediction'] = pred  # tambahkan hasil prediksi ke versi tampilan
+
+        # 🚫 Hilangkan kolom log agar tampilan lebih bersih
+        if 'Projects_per_Years_log' in df_display.columns:
+            df_display = df_display.drop(columns=['Projects_per_Years_log'])
 
         st.success("✅ Prediksi selesai!")
-        st.dataframe(df, height=400, use_container_width=False)
+        st.dataframe(df_display, height=400, use_container_width=False)
         
         st.subheader("📈 Rekomendasi")
         st.markdown("""
