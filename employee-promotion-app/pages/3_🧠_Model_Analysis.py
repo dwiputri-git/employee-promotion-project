@@ -21,6 +21,15 @@ def feature_engineering(df):
         df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
         df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
         df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
+        df['Project_Level'] = pd.qcut(df['Projects_per_Years'], q=4, labels=['Low','Moderate','High','Very High'])
+    if 'Training_Hours' in df.columns:
+        df['Training_Level'] = pd.qcut(df['Training_Hours'], q=5, labels=['Very Low','Low','Moderate','High','Very High'])
+    if 'Leadership_Score' in df.columns:
+        df['Leadership_Level'] = pd.qcut(df['Leadership_Score'], q=4, labels=['Low','Medium','High','Very High'])
+    if 'Years_at_Company' in df.columns:
+        df['Tenure_Level'] = pd.qcut(df['Years_at_Company'], q=4, labels=['New','Mid','Senior','Veteran'])
+    if 'Age' in df.columns:
+        df['Age_Group'] = pd.qcut(df['Age'], q=4, labels=['Young','Early Mid','Late Mid','Senior'])
     return df
 
 def show_model_analysis():
