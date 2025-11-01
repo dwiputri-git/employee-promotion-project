@@ -24,7 +24,7 @@ def show_dashboard():
     st.pyplot(fig)
 
     st.subheader("Rata-rata nilai per departemen")
-    avg_score = df.groupby('Position_Level')['Performance_Score'].mean().sort_values(ascending=False)
+    avg_score = df.groupby('Current_Position_Level')['Performance_Score'].mean().sort_values(ascending=False)
     st.bar_chart(avg_score)
 
 show_dashboard()
