@@ -63,19 +63,29 @@ def show_model_analysis():
     explainer = shap.TreeExplainer(rf_model)
     shap_values = explainer.shap_values(X_transformed)
 
-    # --- Pastikan bentuk cocok
-    st.write(f"✅ Data shape: {X_transformed.shape}, SHAP shape: {shap_values[1].shape}")
+    # --- Pilih SHAP value yang sesuai (untuk binary classification)
+    if isinstance(shap_values, list):
+        shap_values_to_use = shap_values[-1]  # kelas positif
+    else:
+        shap_values_to_use = shap_values
+
+    # --- Pastikan ukuran cocok
+    if shap_values_to_use.shape[1] != X_transformed.shape[1]:
+        st.warning("⚠️ Ukuran SHAP dan data tidak cocok, mencoba reshape otomatis...")
+        shap_values_to_use = shap_values_to_use.reshape(X_transformed.shape[0], -1)
+
+    st.write(f"✅ Data shape: {X_transformed.shape}, SHAP shape: {shap_values_to_use.shape}")
 
     # --- Plot summary
     st.subheader("📊 SHAP Summary Plot")
     fig, ax = plt.subplots(figsize=(10, 6))
-    shap.summary_plot(shap_values[1], X_transformed, feature_names=feature_names, show=False)
+    shap.summary_plot(shap_values_to_use, X_transformed, feature_names=feature_names, show=False)
     st.pyplot(fig)
 
     # --- Plot bar
     with st.expander("📈 SHAP Feature Importance (Bar Chart)"):
         fig2, ax2 = plt.subplots(figsize=(10, 6))
-        shap.summary_plot(shap_values[1], X_transformed, feature_names=feature_names, plot_type="bar", show=False)
+        shap.summary_plot(shap_values_to_use, X_transformed, feature_names=feature_names, plot_type="bar", show=False)
         st.pyplot(fig2)
 
     st.markdown("""
