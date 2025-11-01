@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 import os
 
@@ -11,10 +12,10 @@ def load_model():
     model_path = os.path.join(base_path, "model", "model.pkl")
     model = joblib.load(model_path)
     return model
-    
+
 def feature_engineering(df):
     """Lakukan feature engineering yang sama seperti di training."""
-    if 'Projects' in df.columns and 'Years_at_Company' in df.columns:
+    if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
         df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
         df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
         df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
@@ -30,10 +31,24 @@ def show_prediction_page():
         df = pd.read_csv(uploaded_file, sep=';')
         st.write("Data yang diunggah:")
         st.dataframe(df.head())
-        
-        df = feature_engineering(df)
-        
+
         model = load_model()
+
+        # 🧩 Feature engineering
+        df = feature_engineering(df)
+
+        # 🧩 Samakan kolom dengan model
+        expected_cols = model.feature_names_in_
+        missing_cols = [col for col in expected_cols if col not in df.columns]
+
+        if missing_cols:
+            st.warning(f"Menambahkan kolom yang hilang: {missing_cols}")
+            for col in missing_cols:
+                df[col] = 0
+
+        df = df[expected_cols]
+
+        # 🔮 Prediksi
         pred = model.predict(df)
         df['promotion_prediction'] = pred
 
@@ -47,4 +62,3 @@ def show_prediction_page():
         """)
 
 show_prediction_page()
-
