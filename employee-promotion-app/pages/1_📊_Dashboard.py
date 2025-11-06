@@ -66,7 +66,7 @@ def feature_engineering(df):
 
     return df
 
-df = feature_engineering(df)
+#df = feature_engineering(df)
 
 # -----------------------------
 # ✅ Generate Predictions
