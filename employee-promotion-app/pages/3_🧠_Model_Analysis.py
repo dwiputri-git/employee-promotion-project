@@ -88,15 +88,13 @@ def show_model_analysis():
     st.subheader("📈 ROC Curve")
     plot_roc_curve(y_true, y_prob)
 
-    # --- Feature Importance & SHAP Analysis ---
-    st.subheader("🏗️ Feature Importance & Explainability")
+    # --- Feature Importance ---
+    st.subheader("🏗️ Feature Importance")
 
     try:
         import plotly.express as px
-        import shap
-        import numpy as np
 
-        # Cari langkah dalam pipeline yang punya feature_importances_
+        # Cek apakah model punya feature_importances_
         rf_step = None
         if hasattr(model, "named_steps"):
             for name, step in model.named_steps.items():
@@ -107,17 +105,17 @@ def show_model_analysis():
 
         if rf_step is None and hasattr(model, "feature_importances_"):
             rf_step = model
-        if rf_step is None:
-            raise AttributeError("Tidak ada langkah dalam pipeline yang memiliki feature_importances_.")
 
-        # --- Feature Importance ---
+        if rf_step is None:
+            raise AttributeError("Model tidak memiliki atribut 'feature_importances_'.")
+
         importances = rf_step.feature_importances_
-        n = min(len(importances), len(feature_columns))
         feature_importances = pd.DataFrame({
-            "Feature": feature_columns[:n],
-            "Importance": importances[:n]
+            "Feature": feature_columns,
+            "Importance": importances
         }).sort_values(by="Importance", ascending=False)
 
+        # Plot top 10 features
         top_features = feature_importances.head(10)
         fig = px.bar(
             top_features.sort_values("Importance"),
@@ -141,58 +139,8 @@ def show_model_analysis():
         fig.update_traces(textposition="outside")
         st.plotly_chart(fig, use_container_width=True)
 
-        # --- SHAP Analysis ---
-        st.markdown("### 🔍 SHAP Value Analysis")
-        st.info("""
-        SHAP (SHapley Additive exPlanations) membantu menjelaskan **bagaimana setiap fitur memengaruhi prediksi model**.
-        Warna merah menunjukkan fitur yang meningkatkan kemungkinan promosi, biru menurunkan.
-        """)
-
-        # Ambil subset kecil untuk efisiensi
-        X_sample = X.sample(n=min(200, len(X)), random_state=42)
-
-        # --- Pastikan semua fitur numerik ---
-        # Jika ada kolom kategorikal, lakukan one-hot encoding
-        X_encoded = pd.get_dummies(X_sample)
-
-        # Pastikan kolom cocok dengan yang digunakan model (hanya kolom yang dikenal)
-        X_encoded = X_encoded.reindex(columns=[c for c in X_encoded.columns if c in X_encoded.columns], fill_value=0)
-
-        # Buat TreeExplainer dan hitung shap values
-        explainer = shap.TreeExplainer(rf_step)
-        shap_values = explainer.shap_values(X_encoded)
-
-        # --- Global SHAP Summary Plot ---
-        st.subheader("🌐 SHAP Summary Plot")
-        shap.summary_plot(shap_values[1], X_encoded, plot_type="dot", show=False)
-        st.pyplot(bbox_inches="tight")
-
-        # --- Global Mean Impact (Bar Plot) ---
-        st.subheader("🏆 SHAP Feature Impact (Global Importance)")
-        shap.summary_plot(shap_values[1], X_encoded, plot_type="bar", show=False)
-        st.pyplot(bbox_inches="tight")
-
-        # --- Local Explanation untuk 1 Employee ---
-        st.subheader("👤 SHAP Explanation per Employee")
-        emp_id = st.selectbox("Pilih Employee_ID untuk analisis detail:", df["Employee_ID"].unique())
-
-        emp_data = df[df["Employee_ID"] == emp_id][feature_columns]
-        emp_encoded = pd.get_dummies(emp_data)
-        emp_encoded = emp_encoded.reindex(columns=X_encoded.columns, fill_value=0)
-
-        shap.force_plot(
-            explainer.expected_value[1],
-            explainer.shap_values(emp_encoded)[1],
-            emp_encoded,
-            matplotlib=True,
-            show=False
-        )
-        st.pyplot(bbox_inches="tight")
-
     except Exception as e:
-        st.warning(f"Feature importance atau SHAP tidak dapat ditampilkan: {e}")
-
-
+        st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
 
     # --- Catatan Tambahan ---
     st.markdown("""
@@ -203,4 +151,5 @@ def show_model_analysis():
     """)
 
 
+# Jalankan halaman
 show_model_analysis()
