@@ -94,6 +94,9 @@ def show_model_analysis():
 st.subheader("🏗️ Feature Importance")
 
 try:
+    st.write("Feature columns (streamlit):", len(feature_columns))
+    st.write("Feature importances (model):", len(rf_step.feature_importances_) if 'rf_step' in locals() else len(model.feature_importances_))
+
     # Coba ambil model dari pipeline (nama step bisa bervariasi)
     if hasattr(model, "named_steps"):
         # cari step yang punya atribut feature_importances_
