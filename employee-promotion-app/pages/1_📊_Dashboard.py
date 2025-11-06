@@ -30,7 +30,7 @@ model, feature_columns = load_model()
 @st.cache_data
 def load_data():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_PATH = os.path.join(BASE_DIR, "..", "data", "dataset_cleaning.csv")
+    DATA_PATH = os.path.join(BASE_DIR, "..", "data", "cleaned_data.csv")
     df = pd.read_csv(DATA_PATH)
     return df
 
