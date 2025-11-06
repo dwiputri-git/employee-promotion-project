@@ -26,8 +26,6 @@ def load_model():
         feature_columns = pickle.load(f)
     return model, feature_columns
 
-model, feature_columns = load_model()
-
 
 # --- Fungsi Visualisasi ---
 def plot_confusion_matrix(y_true, y_pred):
@@ -96,42 +94,39 @@ def show_model_analysis():
     try:
         # Cari langkah di pipeline yang punya atribut feature_importances_
         rf_step = None
-    
+
         if hasattr(model, "named_steps"):
             for name, step in model.named_steps.items():
                 if hasattr(step, "feature_importances_"):
                     rf_step = step
                     st.caption(f"✅ Feature importances ditemukan di langkah: '{name}'")
                     break
-    
+
         # Kalau bukan pipeline (langsung model)
         if rf_step is None and hasattr(model, "feature_importances_"):
             rf_step = model
-    
+
         # Kalau tetap tidak ditemukan
         if rf_step is None:
             raise AttributeError("Tidak ada langkah dalam pipeline yang memiliki feature_importances_.")
-    
+
         importances = rf_step.feature_importances_
-    
+
         # Samakan panjang data (jaga-jaga mismatch)
         n = min(len(importances), len(feature_columns))
         feature_importances = pd.DataFrame({
             "Feature": feature_columns[:n],
             "Importance": importances[:n]
         }).sort_values(by="Importance", ascending=False)
-    
+
         st.dataframe(
             feature_importances.head(10).style.background_gradient(cmap="Blues"),
             use_container_width=True
         )
-    
-        except Exception as e:
-            st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
-
 
     except Exception as e:
-    st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
+        st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
+
     # --- Catatan Tambahan ---
     st.markdown("""
     **Catatan Analisis:**
