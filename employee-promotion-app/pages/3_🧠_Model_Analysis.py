@@ -91,16 +91,34 @@ def show_model_analysis():
     plot_roc_curve(y_true, y_prob)
 
     # --- Feature Importance ---
-    st.subheader("🏗️ Feature Importance")
-    try:
+st.subheader("🏗️ Feature Importance")
+
+try:
+    # Coba ambil model dari pipeline (nama step bisa bervariasi)
+    if hasattr(model, "named_steps"):
+        # cari step yang punya atribut feature_importances_
+        rf_step = None
+        for name, step in model.named_steps.items():
+            if hasattr(step, "feature_importances_"):
+                rf_step = step
+                break
+        if rf_step is None:
+            raise AttributeError("No feature_importances_ found in pipeline steps.")
         feature_importances = pd.DataFrame({
             "Feature": feature_columns,
-            "Importance": model.named_steps["model"].feature_importances_
+            "Importance": rf_step.feature_importances_
         }).sort_values(by="Importance", ascending=False)
-        st.bar_chart(feature_importances.set_index("Feature"))
-    except Exception:
-        st.info("Feature importance tidak tersedia untuk pipeline ini.")
+    else:
+        # model langsung (bukan pipeline)
+        feature_importances = pd.DataFrame({
+            "Feature": feature_columns,
+            "Importance": model.feature_importances_
+        }).sort_values(by="Importance", ascending=False)
 
+    st.bar_chart(feature_importances.set_index("Feature"))
+
+except Exception as e:
+    st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
     # --- Catatan Tambahan ---
     st.markdown("""
     **Catatan Analisis:**
