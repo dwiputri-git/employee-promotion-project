@@ -97,10 +97,22 @@ for col in numeric_cols:
         df_pred[col] = df_pred[col].round(0).astype("Int64")
 # Pilih kolom penting aja
 selected_cols = [
-    "Employee_ID",
-    "Age",
-    "Training_Level",
-    "Projects_per_Years",
+    ['Employee_ID', 
+    'Age', 
+    'Years_at_Company', 
+    'Performance_Score',
+    'Leadership_Score', 
+    'Training_Hours', 
+    'Projects_Handled',
+    'Peer_Review_Score', 
+    'Current_Position_Level', 
+    'Training_Level', 
+    'Leadership_Level', 
+    'Projects_per_Years',
+    'Project_Level', 
+    'Tenure_Level', 
+    'Age_Group',
+    'Promotion_Eligible',
     "Prediction",
     "Probability",
     "Recommendation"
