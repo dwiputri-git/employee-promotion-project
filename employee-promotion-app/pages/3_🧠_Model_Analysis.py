@@ -91,34 +91,44 @@ def show_model_analysis():
     plot_roc_curve(y_true, y_prob)
 
     # --- Feature Importance ---
-st.subheader("🏗️ Feature Importance")
+    st.subheader("🏗️ Feature Importance")
 
-try:
-    st.write("Feature columns (streamlit):", len(feature_columns))
-    st.write("Feature importances (model):", len(rf_step.feature_importances_) if 'rf_step' in locals() else len(model.feature_importances_))
-
-    # Coba ambil model dari pipeline (nama step bisa bervariasi)
-    if hasattr(model, "named_steps"):
-        # cari step yang punya atribut feature_importances_
+    try:
+        # Cari langkah di pipeline yang punya atribut feature_importances_
         rf_step = None
-        for name, step in model.named_steps.items():
-            if hasattr(step, "feature_importances_"):
-                rf_step = step
-                break
+    
+        if hasattr(model, "named_steps"):
+            for name, step in model.named_steps.items():
+                if hasattr(step, "feature_importances_"):
+                    rf_step = step
+                    st.caption(f"✅ Feature importances ditemukan di langkah: '{name}'")
+                    break
+    
+        # Kalau bukan pipeline (langsung model)
+        if rf_step is None and hasattr(model, "feature_importances_"):
+            rf_step = model
+    
+        # Kalau tetap tidak ditemukan
         if rf_step is None:
-            raise AttributeError("No feature_importances_ found in pipeline steps.")
+            raise AttributeError("Tidak ada langkah dalam pipeline yang memiliki feature_importances_.")
+    
+        importances = rf_step.feature_importances_
+    
+        # Samakan panjang data (jaga-jaga mismatch)
+        n = min(len(importances), len(feature_columns))
         feature_importances = pd.DataFrame({
-            "Feature": feature_columns,
-            "Importance": rf_step.feature_importances_
+            "Feature": feature_columns[:n],
+            "Importance": importances[:n]
         }).sort_values(by="Importance", ascending=False)
-    else:
-        # model langsung (bukan pipeline)
-        feature_importances = pd.DataFrame({
-            "Feature": feature_columns,
-            "Importance": model.feature_importances_
-        }).sort_values(by="Importance", ascending=False)
+    
+        st.dataframe(
+            feature_importances.head(10).style.background_gradient(cmap="Blues"),
+            use_container_width=True
+        )
+    
+        except Exception as e:
+            st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
 
-    st.bar_chart(feature_importances.set_index("Feature"))
 
 except Exception as e:
     st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
