@@ -16,15 +16,11 @@ def load_model():
     MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model.pkl")
     FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns.pkl")
 
-    try:
-        with open(MODEL_PATH, "rb") as f:
-            model = pickle.load(f)
-        with open(FEATURE_PATH, "rb") as f:
-            feature_columns = pickle.load(f)
-        return model, feature_columns
-    except FileNotFoundError:
-        st.error("❌ File model tidak ditemukan di root folder repository.")
-        st.stop()
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
+    with open(FEATURE_PATH, "rb") as f:
+        feature_columns = pickle.load(f)
+    return model, feature_columns
 
 model, feature_columns = load_model()
 
@@ -46,7 +42,7 @@ df = load_data()
 def feature_engineering(df):
     df = df.copy()
 
-    # Tambahkan fitur baru (pastikan nama sesuai model)
+    # Buat Training_Level dari Training_Hours
     if 'Training_Hours' in df.columns:
         df['Training_Level'] = pd.cut(
             df['Training_Hours'],
@@ -54,16 +50,16 @@ def feature_engineering(df):
             labels=['Low', 'Medium', 'High', 'Intense'],
             include_lowest=True
         )
-    
+
+    # Buat Projects_per_Years dan log transform jika perlu
     if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
         df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company'].replace(0, np.nan)
-        # Kalau skew → log transform
         if df['Projects_per_Years'].skew() > 1:
             df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
         else:
             df['Projects_per_Years_log'] = df['Projects_per_Years']
-    
-    # Jika kolom lain yang diperlukan model tidak ada, isi dengan 0
+
+    # Tambah kolom kosong kalau ada yang hilang
     for col in feature_columns:
         if col not in df.columns:
             df[col] = 0
@@ -83,6 +79,7 @@ def generate_predictions(df):
 
     df["Prediction"] = preds
     df["Probability"] = probs
+    df["Recommendation"] = np.where(df["Prediction"] == 1, "Promote", "Not Ready")
     return df
 
 df_pred = generate_predictions(df)
@@ -118,7 +115,35 @@ avg_score = df_pred.groupby("Current_Position_Level")["Performance_Score"].mean(
 st.bar_chart(avg_score)
 
 # -----------------------------
-# ✅ Sample Data
+# ✅ Sample Data (Custom Columns + Styling)
 # -----------------------------
 st.subheader("📋 Sample Data dengan Prediksi")
-st.dataframe(df_pred.head(10))
+
+# Pilih kolom penting aja
+selected_cols = [
+    "Employee_ID",
+    "Age",
+    "Training_Level",
+    "Projects_per_Years",
+    "Prediction",
+    "Probability",
+    "Recommendation"
+]
+
+# Pastikan kolom ada (biar gak error)
+selected_cols = [col for col in selected_cols if col in df_pred.columns]
+df_show = df_pred[selected_cols].copy()
+
+# Styling warna untuk rekomendasi
+def highlight_recommendation(val):
+    color = ""
+    if val == "Promote":
+        color = "background-color: #C8E6C9; color: #2E7D32; font-weight: bold;"
+    elif val == "Not Ready":
+        color = "background-color: #FFCDD2; color: #C62828; font-weight: bold;"
+    return color
+
+st.dataframe(
+    df_show.style.applymap(highlight_recommendation, subset=["Recommendation"])
+                  .format({"Probability": "{:.2%}"})
+)
