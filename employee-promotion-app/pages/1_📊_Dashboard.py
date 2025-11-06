@@ -37,38 +37,6 @@ def load_data():
 df = load_data()
 
 # -----------------------------
-# ✅ Feature Engineering
-# -----------------------------
-def feature_engineering(df):
-    df = df.copy()
-
-    # Buat Training_Level dari Training_Hours
-    if 'Training_Hours' in df.columns:
-        df['Training_Level'] = pd.cut(
-            df['Training_Hours'],
-            bins=[0, 20, 50, 100, 200],
-            labels=['Low', 'Medium', 'High', 'Intense'],
-            include_lowest=True
-        )
-
-    # Buat Projects_per_Years dan log transform jika perlu
-    if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
-        df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company'].replace(0, np.nan)
-        if df['Projects_per_Years'].skew() > 1:
-            df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
-        else:
-            df['Projects_per_Years_log'] = df['Projects_per_Years']
-
-    # Tambah kolom kosong kalau ada yang hilang
-    for col in feature_columns:
-        if col not in df.columns:
-            df[col] = 0
-
-    return df
-
-#df = feature_engineering(df)
-
-# -----------------------------
 # ✅ Generate Predictions
 # -----------------------------
 @st.cache_data
@@ -118,7 +86,15 @@ st.bar_chart(avg_score)
 # ✅ Sample Data (Custom Columns + Styling)
 # -----------------------------
 st.subheader("📋 Sample Data dengan Prediksi")
+# --- Setelah prediksi selesai dan sebelum tampil di Streamlit ---
+df_pred = generate_predictions(df)
 
+# Format angka biar rapi
+numeric_cols = df_pred.select_dtypes(include=["float", "int"]).columns
+exclude_cols = ["Probability", "Promotion_Rate", "Confidence_Score"]
+for col in numeric_cols:
+    if col not in exclude_cols:
+        df_pred[col] = df_pred[col].round(0).astype("Int64")
 # Pilih kolom penting aja
 selected_cols = [
     "Employee_ID",
