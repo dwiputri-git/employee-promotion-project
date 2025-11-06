@@ -97,7 +97,7 @@ for col in numeric_cols:
         df_pred[col] = df_pred[col].round(0).astype("Int64")
 # Pilih kolom penting aja
 selected_cols = [
-    ['Employee_ID', 
+    'Employee_ID', 
     'Age', 
     'Years_at_Company', 
     'Performance_Score',
