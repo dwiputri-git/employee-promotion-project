@@ -92,6 +92,8 @@ def show_model_analysis():
     st.subheader("🏗️ Feature Importance")
 
     try:
+        import plotly.express as px
+
         # Cari langkah di pipeline yang punya atribut feature_importances_
         rf_step = None
 
@@ -119,10 +121,33 @@ def show_model_analysis():
             "Importance": importances[:n]
         }).sort_values(by="Importance", ascending=False)
 
-        st.dataframe(
-            feature_importances.head(10).style.background_gradient(cmap="Blues"),
-            use_container_width=True
+        top_features = feature_importances.head(10)
+
+        # --- Visualisasi interaktif dengan Plotly ---
+        fig = px.bar(
+            top_features.sort_values("Importance"),
+            x="Importance",
+            y="Feature",
+            orientation="h",
+            color="Importance",
+            color_continuous_scale="Blues",
+            title="Top 10 Most Important Features",
+            text=top_features["Importance"].apply(lambda x: f"{x:.3f}")
         )
+
+        fig.update_layout(
+            title_font=dict(size=18),
+            xaxis_title="Importance Score",
+            yaxis_title="Feature",
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(size=12),
+            margin=dict(l=40, r=40, t=60, b=40)
+        )
+
+        fig.update_traces(textposition="outside")
+
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
