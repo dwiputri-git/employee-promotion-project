@@ -12,7 +12,7 @@ st.set_page_config(page_title="Employee Dashboard", layout="wide")
 @st.cache_resource
 def load_model():
     base_path = os.path.dirname(os.path.dirname(__file__))
-    model_path = os.path.join(base_path, "models", "rf_model.pkl")
+    model_path = os.path.join(base_path, "rf_model.pkl")
     columns_path = os.path.join(base_path, "models", "feature_columns.pkl")
 
     with open(model_path, "rb") as f:
