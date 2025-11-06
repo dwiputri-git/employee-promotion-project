@@ -70,5 +70,40 @@ def show_dashboard():
     avg_score = df.groupby('Current_Position_Level')['Performance_Score'].mean().sort_values(ascending=False)
     st.bar_chart(avg_score)
 
+# ==========================
+    # 🔹 Sample Prediction Table
+    # ==========================
+    st.markdown("---")
+    st.subheader("🔮 Sample Hasil Prediksi Promosi")
+
+    # Contoh data prediksi (mock)
+    sample_data = {
+        "Employee_ID": [f"EMP{i:04d}" for i in range(1, 11)],
+        "prediction": ["No", "Yes", "Yes", "No", "No", "No", "No", "Yes", "No", "Yes"],
+        "probability": [0.052, 0.161, 0.347, 0.181, 0.197, 0.106, 0.582, 0.261, 0.552, 0.040],
+        "confidence": ["High", "High", "Medium", "High", "High", "High", "Medium", "High", "Medium", "High"],
+        "recommendation": ["Not Ready", "Promote", "Promote", "Not Ready", "Not Ready", 
+                           "Not Ready", "Not Ready", "Promote", "Not Ready", "Promote"]
+    }
+    pred_df = pd.DataFrame(sample_data)
+
+    # Styling rekomendasi
+    def highlight_recommendation(val):
+        color = "#B2F0B2" if val == "Promote" else "#F8B8B8"
+        return f"background-color: {color}"
+
+    styled_pred = pred_df.style.applymap(highlight_recommendation, subset=["recommendation"]).format({"probability": "{:.3f}"})
+    st.dataframe(styled_pred, use_container_width=True)
+
+    # Ringkasan kecil di bawah tabel
+    colA, colB = st.columns(2)
+    with colA:
+        total_promote = (pred_df["recommendation"] == "Promote").sum()
+        st.metric("🏅 Total Rekomendasi Promote", total_promote)
+    with colB:
+        avg_prob = pred_df["probability"].mean()
+        st.metric("📈 Rata-rata Probability", f"{avg_prob:.2f}")
+
+
 # Jalankan halaman dashboard
 show_dashboard()
