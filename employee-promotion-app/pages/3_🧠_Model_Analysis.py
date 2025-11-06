@@ -88,15 +88,15 @@ def show_model_analysis():
     st.subheader("📈 ROC Curve")
     plot_roc_curve(y_true, y_prob)
 
-    # --- Feature Importance ---
-    st.subheader("🏗️ Feature Importance")
+    # --- Feature Importance & SHAP Analysis ---
+    st.subheader("🏗️ Feature Importance & Explainability")
 
     try:
         import plotly.express as px
+        import shap
 
-        # Cari langkah di pipeline yang punya atribut feature_importances_
+        # Cari langkah dalam pipeline yang punya feature_importances_
         rf_step = None
-
         if hasattr(model, "named_steps"):
             for name, step in model.named_steps.items():
                 if hasattr(step, "feature_importances_"):
@@ -104,26 +104,20 @@ def show_model_analysis():
                     st.caption(f"✅ Feature importances ditemukan di langkah: '{name}'")
                     break
 
-        # Kalau bukan pipeline (langsung model)
         if rf_step is None and hasattr(model, "feature_importances_"):
             rf_step = model
-
-        # Kalau tetap tidak ditemukan
         if rf_step is None:
             raise AttributeError("Tidak ada langkah dalam pipeline yang memiliki feature_importances_.")
 
         importances = rf_step.feature_importances_
-
-        # Samakan panjang data (jaga-jaga mismatch)
         n = min(len(importances), len(feature_columns))
         feature_importances = pd.DataFrame({
             "Feature": feature_columns[:n],
             "Importance": importances[:n]
         }).sort_values(by="Importance", ascending=False)
 
+        # --- Visualisasi Feature Importance (Plotly) ---
         top_features = feature_importances.head(10)
-
-        # --- Visualisasi interaktif dengan Plotly ---
         fig = px.bar(
             top_features.sort_values("Importance"),
             x="Importance",
@@ -131,10 +125,9 @@ def show_model_analysis():
             orientation="h",
             color="Importance",
             color_continuous_scale="Blues",
-            title="Top 10 Most Important Features",
+            title="Top 10 Most Important Features (Random Forest)",
             text=top_features["Importance"].apply(lambda x: f"{x:.3f}")
         )
-
         fig.update_layout(
             title_font=dict(size=18),
             xaxis_title="Importance Score",
@@ -144,13 +137,50 @@ def show_model_analysis():
             font=dict(size=12),
             margin=dict(l=40, r=40, t=60, b=40)
         )
-
         fig.update_traces(textposition="outside")
-
         st.plotly_chart(fig, use_container_width=True)
 
+        # --- SHAP Analysis ---
+        st.markdown("### 🔍 SHAP Value Analysis")
+        st.info("""
+        SHAP (SHapley Additive exPlanations) membantu menjelaskan **bagaimana setiap fitur memengaruhi prediksi model**.
+        Warna merah menunjukkan fitur yang meningkatkan kemungkinan promosi, biru menurunkan.
+        """)
+
+        # Pilih subset kecil untuk kecepatan
+        X_sample = X.sample(n=min(200, len(X)), random_state=42)
+
+        # Gunakan TreeExplainer untuk model tree-based
+        explainer = shap.TreeExplainer(rf_step)
+        shap_values = explainer.shap_values(X_sample)
+
+        # Visualisasi summary plot (global impact)
+        st.subheader("🌐 SHAP Summary Plot")
+        shap.summary_plot(shap_values[1], X_sample, plot_type="dot", show=False)
+        st.pyplot(bbox_inches="tight")
+
+        # Visualisasi bar chart (mean absolute shap value)
+        st.subheader("🏆 SHAP Feature Impact (Global Importance)")
+        shap.summary_plot(shap_values[1], X_sample, plot_type="bar", show=False)
+        st.pyplot(bbox_inches="tight")
+
+        # Pilihan employee tertentu
+        st.subheader("👤 SHAP Explanation per Employee")
+        emp_id = st.selectbox("Pilih Employee_ID untuk analisis detail:", df["Employee_ID"].unique())
+        emp_data = df[df["Employee_ID"] == emp_id][feature_columns]
+
+        shap.force_plot(
+            explainer.expected_value[1],
+            explainer.shap_values(emp_data)[1],
+            emp_data,
+            matplotlib=True,
+            show=False
+        )
+        st.pyplot(bbox_inches="tight")
+
     except Exception as e:
-        st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
+        st.warning(f"Feature importance atau SHAP tidak dapat ditampilkan: {e}")
+
 
     # --- Catatan Tambahan ---
     st.markdown("""
