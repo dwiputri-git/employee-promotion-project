@@ -130,7 +130,7 @@ def show_model_analysis():
             st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
 
 
-except Exception as e:
+    except Exception as e:
     st.warning(f"Feature importance tidak dapat ditampilkan: {e}")
     # --- Catatan Tambahan ---
     st.markdown("""
