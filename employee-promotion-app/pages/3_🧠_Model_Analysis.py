@@ -16,11 +16,17 @@ def load_data():
 
 @st.cache_resource
 def load_model():
-    with open("rf_model.pkl", "rb") as f:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model.pkl")
+    FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns.pkl")
+
+    with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
-    with open("feature_columns.pkl", "rb") as f:
+    with open(FEATURE_PATH, "rb") as f:
         feature_columns = pickle.load(f)
     return model, feature_columns
+
+model, feature_columns = load_model()
 
 
 # --- Fungsi Visualisasi ---
