@@ -11,7 +11,7 @@ st.set_page_config(page_title="Model Analysis", layout="wide")
 # --- Load Model & Data ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv("data/dataset_cleaning.csv")
+    df = pd.read_csv("data/cleaned_data.csv")
     return df
 
 @st.cache_resource
