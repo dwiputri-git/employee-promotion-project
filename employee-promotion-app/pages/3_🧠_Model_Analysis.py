@@ -94,6 +94,7 @@ def show_model_analysis():
     try:
         import plotly.express as px
         import shap
+        import numpy as np
 
         # Cari langkah dalam pipeline yang punya feature_importances_
         rf_step = None
@@ -109,6 +110,7 @@ def show_model_analysis():
         if rf_step is None:
             raise AttributeError("Tidak ada langkah dalam pipeline yang memiliki feature_importances_.")
 
+        # --- Feature Importance ---
         importances = rf_step.feature_importances_
         n = min(len(importances), len(feature_columns))
         feature_importances = pd.DataFrame({
@@ -116,7 +118,6 @@ def show_model_analysis():
             "Importance": importances[:n]
         }).sort_values(by="Importance", ascending=False)
 
-        # --- Visualisasi Feature Importance (Plotly) ---
         top_features = feature_importances.head(10)
         fig = px.bar(
             top_features.sort_values("Importance"),
@@ -147,32 +148,42 @@ def show_model_analysis():
         Warna merah menunjukkan fitur yang meningkatkan kemungkinan promosi, biru menurunkan.
         """)
 
-        # Pilih subset kecil untuk kecepatan
+        # Ambil subset kecil untuk efisiensi
         X_sample = X.sample(n=min(200, len(X)), random_state=42)
 
-        # Gunakan TreeExplainer untuk model tree-based
+        # --- Pastikan semua fitur numerik ---
+        # Jika ada kolom kategorikal, lakukan one-hot encoding
+        X_encoded = pd.get_dummies(X_sample)
+
+        # Pastikan kolom cocok dengan yang digunakan model (hanya kolom yang dikenal)
+        X_encoded = X_encoded.reindex(columns=[c for c in X_encoded.columns if c in X_encoded.columns], fill_value=0)
+
+        # Buat TreeExplainer dan hitung shap values
         explainer = shap.TreeExplainer(rf_step)
-        shap_values = explainer.shap_values(X_sample)
+        shap_values = explainer.shap_values(X_encoded)
 
-        # Visualisasi summary plot (global impact)
+        # --- Global SHAP Summary Plot ---
         st.subheader("🌐 SHAP Summary Plot")
-        shap.summary_plot(shap_values[1], X_sample, plot_type="dot", show=False)
+        shap.summary_plot(shap_values[1], X_encoded, plot_type="dot", show=False)
         st.pyplot(bbox_inches="tight")
 
-        # Visualisasi bar chart (mean absolute shap value)
+        # --- Global Mean Impact (Bar Plot) ---
         st.subheader("🏆 SHAP Feature Impact (Global Importance)")
-        shap.summary_plot(shap_values[1], X_sample, plot_type="bar", show=False)
+        shap.summary_plot(shap_values[1], X_encoded, plot_type="bar", show=False)
         st.pyplot(bbox_inches="tight")
 
-        # Pilihan employee tertentu
+        # --- Local Explanation untuk 1 Employee ---
         st.subheader("👤 SHAP Explanation per Employee")
         emp_id = st.selectbox("Pilih Employee_ID untuk analisis detail:", df["Employee_ID"].unique())
+
         emp_data = df[df["Employee_ID"] == emp_id][feature_columns]
+        emp_encoded = pd.get_dummies(emp_data)
+        emp_encoded = emp_encoded.reindex(columns=X_encoded.columns, fill_value=0)
 
         shap.force_plot(
             explainer.expected_value[1],
-            explainer.shap_values(emp_data)[1],
-            emp_data,
+            explainer.shap_values(emp_encoded)[1],
+            emp_encoded,
             matplotlib=True,
             show=False
         )
@@ -180,6 +191,7 @@ def show_model_analysis():
 
     except Exception as e:
         st.warning(f"Feature importance atau SHAP tidak dapat ditampilkan: {e}")
+
 
 
     # --- Catatan Tambahan ---
