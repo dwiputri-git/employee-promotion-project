@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
 import pickle
+import os
 
 # =============================
-# PAGE CONFIGURATION
+# PAGE CONFIG
 # =============================
 st.set_page_config(page_title="📊 Employee Dashboard", layout="wide")
 
@@ -15,10 +15,9 @@ st.set_page_config(page_title="📊 Employee Dashboard", layout="wide")
 
 @st.cache_resource
 def load_model():
-    """Load trained model and feature columns."""
-    base_path = os.path.dirname(os.path.dirname(__file__))
-    model_path = os.path.join(base_path, "models", "rf_model.pkl")
-    feature_path = os.path.join(base_path, "models", "feature_columns.pkl")
+    """Load trained Random Forest model and feature columns from root folder."""
+    model_path = os.path.join(os.path.dirname(__file__), "rf_model.pkl")
+    feature_path = os.path.join(os.path.dirname(__file__), "feature_columns.pkl")
 
     with open(model_path, "rb") as f:
         model = pickle.load(f)
@@ -31,14 +30,13 @@ def load_model():
 @st.cache_data
 def load_data():
     """Load cleaned dataset."""
-    base_path = os.path.dirname(os.path.dirname(__file__))
-    data_path = os.path.join(base_path, "data", "dataset_cleaning.csv")
+    data_path = os.path.join(os.path.dirname(__file__), "data", "dataset_cleaning.csv")
     df = pd.read_csv(data_path)
     return df
 
 
 # =============================
-# MAIN DASHBOARD FUNCTION
+# MAIN DASHBOARD
 # =============================
 
 def show_dashboard():
@@ -48,19 +46,17 @@ def show_dashboard():
     df = load_data()
     model, feature_columns = load_model()
 
-    # Pastikan fitur sesuai
-    X = df[feature_columns]
-
     # Prediksi dari model
+    X = df[feature_columns]
     predictions = model.predict(X)
-    probabilities = model.predict_proba(X)[:, 1]  # Probabilitas kelas "Promote"
+    probabilities = model.predict_proba(X)[:, 1]
 
-    # Gabungkan hasil ke data
+    # Tambahkan hasil prediksi ke data
     df["Predicted_Promotion"] = predictions
     df["Promotion_Probability"] = probabilities
 
     # =============================
-    # METRICS CARD
+    # METRIC CARDS
     # =============================
     total_employee = len(df)
     predicted_promotions = df["Predicted_Promotion"].sum()
@@ -90,7 +86,7 @@ def show_dashboard():
     st.pyplot(fig1)
 
     # =============================
-    # VISUALISASI 2: Rata-rata skor performa per level
+    # VISUALISASI 2: Rata-rata Skor Per Level
     # =============================
     st.subheader("⭐ Rata-rata Performance Score per Position Level")
     avg_score = (
@@ -101,9 +97,9 @@ def show_dashboard():
     st.bar_chart(avg_score)
 
     # =============================
-    # TABEL CONTOH DATA
+    # SAMPLE DATA
     # =============================
-    st.subheader("📋 Contoh Data Karyawan & Prediksi")
+    st.subheader("📋 Contoh Data & Hasil Prediksi")
     st.dataframe(
         df[[
             "Employee_ID", "Age", "Years_at_Company", "Performance_Score",
@@ -112,6 +108,7 @@ def show_dashboard():
         ]].head(10),
         hide_index=True
     )
+
 
 # Jalankan halaman
 show_dashboard()
