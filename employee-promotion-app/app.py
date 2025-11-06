@@ -3,10 +3,8 @@ import pickle
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+import numpy as np
 
-# -----------------------------
-# ✅ Page Configuration
-# -----------------------------
 st.set_page_config(page_title="Dashboard", layout="wide")
 
 # -----------------------------
@@ -25,7 +23,7 @@ def load_model():
             feature_columns = pickle.load(f)
         return model, feature_columns
     except FileNotFoundError:
-        st.error("❌ File model tidak ditemukan. Pastikan `rf_model.pkl` dan `feature_columns.pkl` ada di root folder repository kamu.")
+        st.error("❌ File model tidak ditemukan di root folder repository.")
         st.stop()
 
 model, feature_columns = load_model()
@@ -43,11 +41,42 @@ def load_data():
 df = load_data()
 
 # -----------------------------
-# ✅ Generate Prediction
+# ✅ Feature Engineering
+# -----------------------------
+def feature_engineering(df):
+    df = df.copy()
+
+    # Tambahkan fitur baru (pastikan nama sesuai model)
+    if 'Training_Hours' in df.columns:
+        df['Training_Level'] = pd.cut(
+            df['Training_Hours'],
+            bins=[0, 20, 50, 100, 200],
+            labels=['Low', 'Medium', 'High', 'Intense'],
+            include_lowest=True
+        )
+    
+    if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
+        df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company'].replace(0, np.nan)
+        # Kalau skew → log transform
+        if df['Projects_per_Years'].skew() > 1:
+            df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
+        else:
+            df['Projects_per_Years_log'] = df['Projects_per_Years']
+    
+    # Jika kolom lain yang diperlukan model tidak ada, isi dengan 0
+    for col in feature_columns:
+        if col not in df.columns:
+            df[col] = 0
+
+    return df
+
+df = feature_engineering(df)
+
+# -----------------------------
+# ✅ Generate Predictions
 # -----------------------------
 @st.cache_data
 def generate_predictions(df):
-    # Pastikan kolom sesuai feature model
     X = df[feature_columns].copy()
     preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
@@ -64,8 +93,6 @@ df_pred = generate_predictions(df)
 st.title("📊 Employee Promotion Dashboard")
 
 col1, col2, col3 = st.columns(3)
-
-# Card metrics
 total_employees = len(df_pred)
 predicted_promotions = int(df_pred["Prediction"].sum())
 promotion_rate = (predicted_promotions / total_employees) * 100
