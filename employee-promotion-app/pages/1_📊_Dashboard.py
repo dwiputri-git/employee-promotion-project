@@ -83,3 +83,11 @@ def show_dashboard():
     st.subheader("📋 Contoh Data & Hasil Prediksi")
     st.dataframe(
         df[[
+            "Employee_ID", "Age", "Years_at_Company", "Performance_Score",
+            "Leadership_Score", "Current_Position_Level",
+            "Predicted_Promotion", "Promotion_Probability"
+        ]].head(10),
+        hide_index=True
+    )
+
+show_dashboard()
