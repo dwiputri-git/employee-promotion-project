@@ -29,7 +29,7 @@ Gunakan sidebar di kiri untuk menavigasi ke:
 # =====================================================
 @st.cache_resource
 def load_model():
-    with open("models/rf_model.pkl", "rb") as f:
+    with open("employee-promotion-app/models/rf_model.pkl", "rb") as f:
         model = pickle.load(f)
     with open("models/feature_columns.pkl", "rb") as f:
         feature_columns = pickle.load(f)
