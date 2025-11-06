@@ -1,7 +1,3 @@
-board dan model analysis page
-
-Berikut versi lanjutan dari app.py kamu — sudah profesional, bersih, dan cocok untuk HR 👇
-
 import streamlit as st
 import pandas as pd
 import numpy as np
