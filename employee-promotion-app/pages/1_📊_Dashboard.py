@@ -53,7 +53,7 @@ def generate_predictions(df):
     def final_recommendation(p):
         if p >= 0.55:
             return "Promote"
-        elif p >= 0.45:
+        elif p >= 0.50:
             return "Need Review"
         else:
             return "Not Ready"
