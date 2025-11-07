@@ -55,8 +55,6 @@ def show_model_analysis():
     st.subheader("📉 Confusion Matrix")
 
     # Data manual
-    conf_matrix = np.array([[124, 9],
-                            [46, 9]])
     percentages = np.array([[66.0, 4.8],
                             [24.5, 4.8]])
     
@@ -77,11 +75,10 @@ def show_model_analysis():
     # Tambah teks angka + persen
     for i in range(2):
         for j in range(2):
-            val = conf_matrix[i, j]
             pct = percentages[i, j]
             color = "white" if val > 30 else "black"
-            ax.text(j + 0.5, i + 0.5, f"{val}\n({pct:.1f}%)",
-                    ha='center', va='center', color=color, fontsize=12, fontweight='bold')
+            ax.text(j + 0.5, i + 0.5, f"{pct:.1f}%",
+                    ha='center', va='center', color=color, fontsize=12')
     
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
