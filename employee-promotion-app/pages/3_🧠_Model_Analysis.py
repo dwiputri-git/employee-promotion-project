@@ -28,7 +28,7 @@ st.set_page_config(page_title="Model Analysis", layout="wide")
 # -----------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("employee-promotion-app/data/cleaned_data.csv")
+    return pd.read_csv("employee-promotion-app/data/data_train.csv")
 
 @st.cache_resource
 def load_model():
