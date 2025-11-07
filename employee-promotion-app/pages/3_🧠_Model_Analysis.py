@@ -112,46 +112,57 @@ def show_model_analysis():
         use_container_width=True
     )
 
-    # --- Feature Importance ---
-    st.subheader("🏗️ Feature Importance")
+# --- Feature Importance ---
+st.subheader("🏗️ Feature Importance")
 
-    # Ambil step RF kalau model pipeline
-    rf_step = None
-    if hasattr(model, "named_steps"):
-        for name, step in model.named_steps.items():
-            if hasattr(step, "feature_importances_"):
-                rf_step = step
-                break
-    if rf_step is None and hasattr(model, "feature_importances_"):
-        rf_step = model
+# Cek apakah model pipeline
+rf_step = None
+if hasattr(model, "named_steps"):
+    # ambil step model random forest
+    rf_step = model.named_steps.get("rf", None)
 
-    if rf_step is not None:
-        importances = rf_step.feature_importances_
-        feature_importances = pd.DataFrame({
-            "Feature": feature_columns,
-            "Importance": importances
-        }).sort_values(by="Importance", ascending=False)
+    # ambil nama fitur hasil encoding
+    try:
+        preprocessor = model.named_steps["preprocessor"]
+        encoded_feature_names = preprocessor.get_feature_names_out()
+    except Exception:
+        encoded_feature_names = feature_columns
+else:
+    rf_step = model
+    encoded_feature_names = feature_columns
 
-        fig = px.bar(
-            feature_importances.head(10).sort_values("Importance"),
-            x="Importance",
-            y="Feature",
-            orientation="h",
-            color="Importance",
-            color_continuous_scale="Oranges",
-            title="Top 10 Most Important Features"
-        )
-        fig.update_layout(
-            xaxis_title="Importance Score",
-            yaxis_title="Feature",
-            title_font=dict(size=16),
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            height=400
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("Feature importance tidak tersedia pada model ini.")
+# Pastikan panjang sama
+if rf_step is not None and hasattr(rf_step, "feature_importances_"):
+    importances = rf_step.feature_importances_
+
+    n = min(len(importances), len(encoded_feature_names))
+    feature_importances = pd.DataFrame({
+        "Feature": encoded_feature_names[:n],
+        "Importance": importances[:n]
+    }).sort_values(by="Importance", ascending=False)
+
+    import plotly.express as px
+    fig = px.bar(
+        feature_importances.head(10).sort_values("Importance"),
+        x="Importance",
+        y="Feature",
+        orientation="h",
+        color="Importance",
+        color_continuous_scale="Oranges",
+        title="Top 10 Most Important Features"
+    )
+    fig.update_layout(
+        xaxis_title="Importance Score",
+        yaxis_title="Feature",
+        title_font=dict(size=16),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        height=400
+    )
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.warning("Feature importance tidak tersedia pada model ini.")
+
 
     # --- Catatan Analisis ---
     st.markdown("""
