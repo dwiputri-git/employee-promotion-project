@@ -16,51 +16,37 @@ def load_model():
     return model
 
 
-# ====== FUNGSI PREPROCESSING ======
-def preprocess_data(df):
-    df = df.copy()
-
-    # --- Contoh encoding / feature engineering sederhana ---
-    # Pastikan sesuaikan dengan yang kamu pakai saat training
-    if "Training_Score" in df.columns:
-        df["Training_Level"] = pd.cut(
-            df["Training_Score"],
-            bins=[0, 40, 60, 80, 100],
-            labels=["Low", "Medium", "High", "Excellent"]
+# ====== FEATURE ENGINEERING (sesuai model training) ======
+def feature_engineering(df):
+    """Lakukan feature engineering yang sama seperti di training."""
+    if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
+        df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
+        df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
+        df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
+        df['Project_Level'] = pd.qcut(
+            df['Projects_per_Years'], q=4, 
+            labels=['Low', 'Moderate', 'High', 'Very High']
         )
-
-    if "Leadership_Score" in df.columns:
-        df["Leadership_Level"] = pd.cut(
-            df["Leadership_Score"],
-            bins=[0, 40, 60, 80, 100],
-            labels=["Low", "Medium", "High", "Excellent"]
+    if 'Training_Hours' in df.columns:
+        df['Training_Level'] = pd.qcut(
+            df['Training_Hours'], q=5,
+            labels=['Very Low', 'Low', 'Moderate', 'High', 'Very High']
         )
-
-    if "Projects_per_Years" in df.columns:
-        df["Projects_per_Years_log"] = np.log1p(df["Projects_per_Years"])
-
-    if "Tenure" in df.columns:
-        df["Tenure_Level"] = pd.cut(
-            df["Tenure"],
-            bins=[0, 2, 5, 10, 20, 40],
-            labels=["New", "Junior", "Mid", "Senior", "Expert"]
+    if 'Leadership_Score' in df.columns:
+        df['Leadership_Level'] = pd.qcut(
+            df['Leadership_Score'], q=4,
+            labels=['Low', 'Medium', 'High', 'Very High']
         )
-
-    if "Age" in df.columns:
-        df["Age_Group"] = pd.cut(
-            df["Age"],
-            bins=[18, 25, 35, 45, 55, 65],
-            labels=["Young", "Early Mid", "Mid", "Senior", "Late Senior"]
+    if 'Years_at_Company' in df.columns:
+        df['Tenure_Level'] = pd.qcut(
+            df['Years_at_Company'], q=4,
+            labels=['New', 'Mid', 'Senior', 'Veteran']
         )
-
-    # --- Project Level dari nilai performance misalnya ---
-    if "Project_Score" in df.columns:
-        df["Project_Level"] = pd.cut(
-            df["Project_Score"],
-            bins=[0, 40, 60, 80, 100],
-            labels=["Low", "Medium", "High", "Excellent"]
+    if 'Age' in df.columns:
+        df['Age_Group'] = pd.qcut(
+            df['Age'], q=4,
+            labels=['Young', 'Early Mid', 'Late Mid', 'Senior']
         )
-
     return df
 
 
@@ -104,29 +90,34 @@ else:
         st.success(f"✅ File berhasil diunggah: **{uploaded_file.name}**")
         st.markdown("---")
 
-        # Preprocess data agar sesuai model
-        df = preprocess_data(df_raw)
+        # ====== FEATURE ENGINEERING ======
+        df = feature_engineering(df_raw)
 
-        # Load model
+        # ====== LOAD MODEL ======
         model = load_model()
-        expected_features = model.feature_names_in_
 
         # Pastikan semua fitur tersedia
-        missing_cols = [col for col in expected_features if col not in df.columns]
-        if missing_cols:
-            st.error(f"❌ Kolom berikut masih belum ada walau sudah diproses: {', '.join(missing_cols)}")
+        if hasattr(model, "feature_names_in_"):
+            expected_features = model.feature_names_in_
         else:
-            X_new = df[expected_features]
+            expected_features = df.columns  # fallback jika model tidak punya atribut ini
 
-            # Prediksi dan probabilitas
+        missing_cols = [col for col in expected_features if col not in df.columns]
+
+        if missing_cols:
+            st.error(f"❌ Kolom berikut hilang di file kamu: {', '.join(missing_cols)}")
+        else:
+            # ====== PREDIKSI ======
+            X_new = df[expected_features]
             preds = model.predict(X_new)
             probs = model.predict_proba(X_new)[:, 1] * 100
 
-            df_raw["Prediction"] = preds
-            df_raw["Probability"] = probs
-            df_raw["Recommendation"] = np.where(df_raw["Probability"] >= 70, "Promote", "Not Ready")
+            df_result = df_raw.copy()
+            df_result["Prediction"] = preds
+            df_result["Probability"] = probs
+            df_result["Recommendation"] = np.where(df_result["Probability"] >= 70, "Promote", "Not Ready")
 
-            # Tampilkan hasil
+            # ====== TAMPILKAN HASIL ======
             st.markdown("### 📋 Hasil Prediksi")
             st.write("Berikut hasil prediksi kelayakan promosi:")
 
@@ -135,13 +126,13 @@ else:
                 return f"background-color: {color}"
 
             st.dataframe(
-                df_raw.style
+                df_result.style
                 .applymap(highlight_recommendation, subset=["Recommendation"])
                 .format({"Probability": "{:.2f}%"})
             )
 
-            # Tombol download
-            csv = df_raw.to_csv(index=False).encode("utf-8")
+            # ====== DOWNLOAD HASIL ======
+            csv = df_result.to_csv(index=False).encode("utf-8")
             st.download_button(
                 label="💾 Download Hasil Prediksi",
                 data=csv,
