@@ -62,7 +62,7 @@ def show_model_analysis():
     colors = sns.color_palette("Oranges", as_cmap=True)
     
     fig, ax = plt.subplots(figsize=(3.8, 3.8))
-    sns.heatmap(conf_matrix, 
+    sns.heatmap(percentages, 
                 annot=False, 
                 fmt="d", 
                 cmap=colors, 
