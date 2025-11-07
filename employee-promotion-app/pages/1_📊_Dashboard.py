@@ -37,22 +37,22 @@ def load_data():
 df = load_data()
 
 # -----------------------------
-# ✅ Generate Predictions (Simple version)
+# ✅ Generate Predictions
 # -----------------------------
 @st.cache_data
 def generate_predictions(df):
     X = df[feature_columns].copy()
-    preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
 
     df = df.copy()
-    df["Prediction"] = preds
     df["Probability"] = probs
 
     # --- Final Recommendation Logic ---
     def final_recommendation(p):
-        if p >= 0.50:
+        if p >= 0.7:
             return "Promote"
+        elif p >= 0.5:
+            return "Need Review"
         else:
             return "Not Ready"
 
@@ -64,7 +64,7 @@ df_pred = generate_predictions(df)
 # -----------------------------
 # ✅ Dashboard Layout
 # -----------------------------
-st.title("📊 Dashboard")
+st.title("📊 Employee Promotion Dashboard")
 
 col1, col2, col3 = st.columns(3)
 total_employees = len(df_pred)
@@ -77,27 +77,74 @@ col3.metric("📈 Promotion Rate", f"{promotion_rate:.2f}%")
 
 st.divider()
 
-# -----------------------------
-# ✅ Visualisasi
-# -----------------------------
-st.subheader("Distribusi Prediksi Promosi")
-fig, ax = plt.subplots()
-df_pred["Recommendation"].value_counts().plot(
-    kind="bar", color=["#FFCDD2", "#FFF59D", "#C8E6C9"], ax=ax
-)
-plt.title("Distribusi Hasil Rekomendasi")
-plt.xticks(rotation=0)
-st.pyplot(fig)
+# ============================================================
+# 📊 Row 1 - Distribusi & Promotion Rate by Position
+# ============================================================
+st.subheader("📦 Distribusi & Promotion Rate")
 
-st.subheader("Rata-rata Performance Score per Level Jabatan")
-avg_score = df_pred.groupby("Current_Position_Level")["Performance_Score"].mean().sort_values(ascending=False)
-st.bar_chart(avg_score)
+colA, colB = st.columns(2)
 
-# -----------------------------
-# ✅ Sample Data
-# -----------------------------
+with colA:
+    st.markdown("**Distribusi Rekomendasi Promosi**")
+    fig1, ax1 = plt.subplots()
+    order = ["Not Ready", "Need Review", "Promote"]
+    df_pred["Recommendation"].value_counts().reindex(order).plot(
+        kind="bar", color=["#FFCDD2", "#FFF59D", "#C8E6C9"], ax=ax1
+    )
+    plt.title("Distribusi Hasil Rekomendasi")
+    plt.xticks(rotation=0)
+    plt.ylabel("Jumlah Karyawan")
+    st.pyplot(fig1)
+
+with colB:
+    st.markdown("**Promotion Rate by Current Position Level**")
+    promotion_by_level = (
+        df_pred.groupby("Current_Position_Level")["Recommendation"]
+        .apply(lambda x: (x == "Promote").mean() * 100)
+        .sort_values(ascending=False)
+    )
+    fig2, ax2 = plt.subplots()
+    promotion_by_level.plot(kind="bar", color="#90CAF9", ax=ax2)
+    plt.title("Promotion Rate per Level Jabatan")
+    plt.ylabel("Promotion Rate (%)")
+    plt.xlabel("Current Position Level")
+    st.pyplot(fig2)
+
+# ============================================================
+# 📊 Row 2 - Performance Score & Project Level
+# ============================================================
+st.subheader("🎯 Performance & Project Analysis")
+
+colC, colD = st.columns(2)
+
+with colC:
+    st.markdown("**Performance Score vs Promotion Probability**")
+    fig3, ax3 = plt.subplots()
+    ax3.scatter(df_pred["Performance_Score"], df_pred["Probability"], alpha=0.6)
+    plt.title("Performance Score vs Promotion Probability")
+    plt.xlabel("Performance Score")
+    plt.ylabel("Promotion Probability")
+    st.pyplot(fig3)
+
+with colD:
+    st.markdown("**Project Level vs Promotion Rate**")
+    promotion_by_project = (
+        df_pred.groupby("Project_Level")["Recommendation"]
+        .apply(lambda x: (x == "Promote").mean() * 100)
+        .sort_index()
+    )
+    fig4, ax4 = plt.subplots()
+    promotion_by_project.plot(kind="bar", color="#A5D6A7", ax=ax4)
+    plt.title("Promotion Rate berdasarkan Project Level")
+    plt.ylabel("Promotion Rate (%)")
+    plt.xlabel("Project Level")
+    st.pyplot(fig4)
+
+# ============================================================
+# 📋 Sample Data Table
+# ============================================================
+st.divider()
 st.subheader("📋 Sample Data dengan Prediksi")
-df_pred = generate_predictions(df)
 
 # Format angka biar rapi
 numeric_cols = df_pred.select_dtypes(include=["float", "int"]).columns
@@ -106,29 +153,35 @@ for col in numeric_cols:
     if col not in exclude_cols:
         df_pred[col] = df_pred[col].round(0).astype("Int64")
 
-# Pilih kolom penting aja
 selected_cols = [
-    'Employee_ID', 
-    'Age', 
-    'Performance_Score',
-    'Leadership_Score', 
-    'Training_Hours', 
-    'Peer_Review_Score', 
-    'Current_Position_Level', 
-    'Project_Level', 
-    'Tenure_Level', 
-    "Prediction",
+    "Employee_ID",
+    "Age",
+    "Years_at_Company",
+    "Performance_Score",
+    "Leadership_Score",
+    "Training_Hours",
+    "Projects_Handled",
+    "Peer_Review_Score",
+    "Current_Position_Level",
+    "Training_Level",
+    "Leadership_Level",
+    "Projects_per_Years",
+    "Project_Level",
+    "Tenure_Level",
+    "Age_Group",
+    "Promotion_Eligible",
     "Probability",
-    "Recommendation"
+    "Recommendation",
 ]
-
-selected_cols = [col for col in selected_cols if col in df_pred.columns]
+selected_cols = [c for c in selected_cols if c in df_pred.columns]
 df_show = df_pred[selected_cols].copy()
 
-# Styling warna
+# Warna rekomendasi
 def highlight_recommendation(val):
     if val == "Promote":
         return "background-color: #C8E6C9; color: #1B5E20; font-weight: bold;"
+    elif val == "Need Review":
+        return "background-color: #FFF9C4; color: #E65100; font-weight: bold;"
     elif val == "Not Ready":
         return "background-color: #FFCDD2; color: #C62828; font-weight: bold;"
     return ""
