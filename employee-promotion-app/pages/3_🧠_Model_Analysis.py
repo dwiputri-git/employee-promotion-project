@@ -4,7 +4,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 import os
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    roc_curve,
+    auc,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    average_precision_score,
+    precision_recall_curve,
+    brier_score_loss,
+)
+import numpy as np
 import plotly.express as px
 
 st.set_page_config(page_title="Model Analysis", layout="wide")
@@ -12,65 +26,69 @@ st.set_page_config(page_title="Model Analysis", layout="wide")
 # --- Load Model & Data ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv("employee-promotion-app/data/cleaned_data.csv")
-    return df
+    # sesuaikan path datasetmu
+    return pd.read_csv("employee-promotion-app/data/cleaned_data.csv")
 
 @st.cache_resource
 def load_model():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model2.pkl")
     FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns2.pkl")
-
     with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
     with open(FEATURE_PATH, "rb") as f:
         feature_columns = pickle.load(f)
     return model, feature_columns
 
-
-# --- Fungsi Visualisasi ---
+# --- Helper Plots ---
 def plot_confusion_matrix(y_true, y_pred):
-    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
     labels = ["Not Promoted (0)", "Promoted (1)"]
-
     fig, ax = plt.subplots(figsize=(5, 4))
     sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Oranges",
-        xticklabels=labels,
-        yticklabels=labels,
-        cbar=False,
-        linewidths=1,
-        linecolor="white"
+        cm, annot=True, fmt="d", cmap="Oranges",
+        xticklabels=labels, yticklabels=labels, cbar=False,
+        linewidths=1, linecolor="white", ax=ax
     )
-    ax.set_xlabel("Predicted Label", fontsize=11)
-    ax.set_ylabel("True Label", fontsize=11)
+    ax.set_xlabel("Predicted", fontsize=11)
+    ax.set_ylabel("Actual", fontsize=11)
     ax.set_title("Confusion Matrix", fontsize=13, pad=10)
     st.pyplot(fig)
-
 
 def plot_roc_curve(y_true, y_prob):
     fpr, tpr, _ = roc_curve(y_true, y_prob)
     roc_auc = auc(fpr, tpr)
     fig, ax = plt.subplots(figsize=(5, 4))
-    ax.plot(fpr, tpr, color='darkorange', lw=2, label=f"AUC = {roc_auc:.2f}")
-    ax.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+    ax.plot(fpr, tpr, lw=2, label=f"ROC Curve (AUC = {roc_auc:.3f})")
+    ax.plot([0, 1], [0, 1], lw=1, linestyle="--", label="Random Classifier")
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("True Positive Rate")
     ax.set_title("ROC Curve")
     ax.legend(loc="lower right")
     st.pyplot(fig)
 
+def plot_pr_curve(y_true, y_prob):
+    precision, recall, _ = precision_recall_curve(y_true, y_prob)
+    ap = average_precision_score(y_true, y_prob)
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.plot(recall, precision, lw=2)
+    ax.set_xlabel("Recall")
+    ax.set_ylabel("Precision")
+    ax.set_title(f"Precision–Recall Curve (AP = {ap:.3f})")
+    st.pyplot(fig)
+
+def plot_probability_hist(y_prob, threshold=0.5):
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.hist(y_prob, bins=15, alpha=0.7)
+    ax.axvline(threshold, linestyle="--", linewidth=2)
+    ax.set_xlabel("Prediction Probability")
+    ax.set_ylabel("Count")
+    ax.set_title("Probability Distribution")
+    st.pyplot(fig)
 
 # --- Main Page ---
 def show_model_analysis():
     st.title("🧠 Model Analysis")
-    st.markdown("""
-    Halaman ini menampilkan **evaluasi performa model Random Forest (rf_model2.pkl)**  
-    yang digunakan untuk memprediksi kelayakan promosi karyawan.
-    """)
 
     df = load_data()
     model, feature_columns = load_model()
@@ -80,98 +98,160 @@ def show_model_analysis():
         return
 
     X = df[feature_columns]
-    y_true = df["Promotion_Eligible"]
+    y_true = df["Promotion_Eligible"].astype(int)
 
-    # Coba prediksi probabilitas (kalau ada)
+    # Prediksi
     try:
-        y_pred = model.predict(X)
         y_prob = model.predict_proba(X)[:, 1]
     except Exception:
-        y_pred = model.predict(X)
-        y_prob = [0.5] * len(y_pred)  # fallback
+        y_prob = np.full(len(df), 0.5)
+    y_pred = (y_prob >= 0.5).astype(int)
+    threshold = 0.5  # tampilkan juga di metrik
 
-    # --- Layout 2 kolom atas ---
-    col1, col2 = st.columns(2)
+    # ===== Header: Model Information =====
+    st.markdown("### Model Information")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("**Model Type**")
+        st.write(type(model).__name__)
+    with c2:
+        st.markdown("**Training Data**")
+        st.write(f"{len(df):,} samples")
+    with c3:
+        st.markdown("**Features**")
+        st.write(f"{len(feature_columns)} features")
 
-    # --- Confusion Matrix ---
-    with col1:
-        st.subheader("📉 Confusion Matrix")
+    # ===== Performance Metrics =====
+    acc = accuracy_score(y_true, y_pred)
+    prec = precision_score(y_true, y_pred, zero_division=0)
+    rec = recall_score(y_true, y_pred, zero_division=0)
+    f1 = f1_score(y_true, y_pred, zero_division=0)
+    try:
+        rocauc = roc_auc_score(y_true, y_prob)
+    except Exception:
+        rocauc = float("nan")
+    ap = average_precision_score(y_true, y_prob)
+    brier = brier_score_loss(y_true, y_prob)
+
+    st.markdown("### Performance Metrics")
+    m1, m2, m3, m4, m5, m6, m7 = st.columns(7)
+    m1.metric("Accuracy", f"{acc:.3f}")
+    m2.metric("Precision", f"{prec:.3f}")
+    m3.metric("Recall", f"{rec:.3f}")
+    m4.metric("F1-Score", f"{f1:.3f}")
+    m5.metric("ROC-AUC", f"{rocauc:.3f}")
+    m6.metric("PR-AUC", f"{ap:.3f}")
+    m7.metric("Brier Score", f"{brier:.3f}")
+    st.caption(f"**Threshold**: {threshold:.3f}")
+
+    st.markdown("### Model Visualizations")
+    # ===== Row 1: Confusion Matrix | ROC =====
+    r1c1, r1c2 = st.columns(2)
+    with r1c1:
+        st.subheader("Confusion Matrix")
         plot_confusion_matrix(y_true, y_pred)
-
-    # --- ROC Curve ---
-    with col2:
-        st.subheader("📈 ROC Curve")
+    with r1c2:
+        st.subheader("ROC Curve")
         plot_roc_curve(y_true, y_prob)
 
-    # --- Classification Report ---
-    st.subheader("📊 Classification Report")
-    report = classification_report(y_true, y_pred, output_dict=True)
-    report_df = pd.DataFrame(report).transpose()
-    st.dataframe(
-        report_df.style.background_gradient(cmap="Oranges"),
-        use_container_width=True
-    )
+    # ===== Row 2: PR Curve | Probability Dist =====
+    r2c1, r2c2 = st.columns(2)
+    with r2c1:
+        st.subheader("Precision–Recall Curve")
+        plot_pr_curve(y_true, y_prob)
+    with r2c2:
+        st.subheader("Probability Distribution")
+        plot_probability_hist(y_prob, threshold=threshold)
 
-    # --- Feature Importance ---
-    st.subheader("🏗️ Feature Importance")
-    
-    # Cek apakah model pipeline
+    # ===== Feature Importance =====
+    st.markdown("### Feature Importance")
+    # ambil estimator RF & nama fitur setelah preprocessing jika ada
     rf_step = None
+    encoded_feature_names = feature_columns
     if hasattr(model, "named_steps"):
-        # ambil step model random forest
-        rf_step = model.named_steps.get("rf", None)
-    
-        # ambil nama fitur hasil encoding
+        rf_step = model.named_steps.get("rf", None) or model.named_steps.get("classifier", None)
         try:
-            preprocessor = model.named_steps["preprocessor"]
-            encoded_feature_names = preprocessor.get_feature_names_out()
+            pre = model.named_steps.get("preprocessor", None)
+            if pre is not None:
+                encoded_feature_names = pre.get_feature_names_out()
         except Exception:
             encoded_feature_names = feature_columns
     else:
         rf_step = model
-        encoded_feature_names = feature_columns
-    
-    # Pastikan panjang sama
+
     if rf_step is not None and hasattr(rf_step, "feature_importances_"):
         importances = rf_step.feature_importances_
-    
         n = min(len(importances), len(encoded_feature_names))
-        feature_importances = pd.DataFrame({
-            "Feature": encoded_feature_names[:n],
-            "Importance": importances[:n]
-        }).sort_values(by="Importance", ascending=False)
-    
-        import plotly.express as px
-        fig = px.bar(
+        feature_importances = (
+            pd.DataFrame({
+                "Feature": encoded_feature_names[:n],
+                "Importance": importances[:n]
+            })
+            .sort_values("Importance", ascending=False)
+        )
+
+        # Plot Top-10 horizontal bar
+        fig_imp = px.bar(
             feature_importances.head(10).sort_values("Importance"),
-            x="Importance",
-            y="Feature",
-            orientation="h",
-            color="Importance",
-            color_continuous_scale="Oranges",
-            title="Top 10 Most Important Features"
+            x="Importance", y="Feature", orientation="h",
+            color="Importance", color_continuous_scale="Blues",
+            title="Feature Importance (Top 10)"
         )
-        fig.update_layout(
-            xaxis_title="Importance Score",
-            yaxis_title="Feature",
-            title_font=dict(size=16),
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            height=400
+        fig_imp.update_layout(height=420, plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig_imp, use_container_width=True)
+
+        # Tabel ringkas
+        st.dataframe(
+            feature_importances.head(10).reset_index(drop=True),
+            use_container_width=True,
+            height=300
         )
-        st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("Feature importance tidak tersedia pada model ini.")
 
+    # ===== Evaluation Details =====
+    st.markdown("### Model Evaluation Details")
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    err = fp + fn
+    total = tn + fp + fn + tp
+    err_rate = err / total if total else 0.0
+    fpr = fp / (fp + tn) if (fp + tn) else 0.0
+    fnr = fn / (fn + tp) if (fn + tp) else 0.0
 
-    # --- Catatan Analisis ---
-    st.markdown("""
-    **Catatan:**
-    - Warna oranye menandakan jumlah prediksi pada masing-masing kategori.
-    - ROC Curve menggambarkan kemampuan model dalam membedakan dua kelas.
-    - Feature Importance menunjukkan fitur yang paling berpengaruh terhadap keputusan promosi.
-    """)
+    cL, cR = st.columns(2)
+    with cL:
+        st.markdown("**Confusion Matrix Breakdown**")
+        st.markdown(
+            f"- True Negatives: **{tn}**  \n"
+            f"- False Positives: **{fp}**  \n"
+            f"- False Negatives: **{fn}**  \n"
+            f"- True Positives: **{tp}**"
+        )
+    with cR:
+        st.markdown("**Error Analysis**")
+        st.markdown(
+            f"- Total Errors: **{err}**  \n"
+            f"- Error Rate: **{err_rate:.1%}**  \n"
+            f"- False Positive Rate: **{fpr:.1%}**  \n"
+            f"- False Negative Rate: **{fnr:.1%}**"
+        )
 
+    # ===== Interpretation & Recommendations =====
+    st.markdown("### Model Interpretation")
+    st.markdown(
+        "- Fitur kinerja (mis. **Performance_Score**, **Leadership_Score**) cenderung paling berpengaruh."
+        "\n- Distribusi probabilitas menunjukkan mayoritas prediksi berada di bawah threshold."
+        "\n- ROC/PR curve mengindikasikan separasi kelas yang moderat—perlu tuning & fitur tambahan."
+    )
+
+    st.markdown("### Model Recommendations")
+    st.markdown(
+        "1. **Hyperparameter Tuning** (Optuna/GridSearch) untuk meningkatkan ROC-AUC & PR-AUC.\n"
+        "2. **Feature Engineering**: interaction terms (e.g., performance × leadership), recency features, dan normalisasi jam pelatihan per tahun.\n"
+        "3. **Handle Class Imbalance**: gunakan class_weight atau SMOTE jika label tidak seimbang.\n"
+        "4. **Calibrate Probabilities** (CalibratedClassifierCV) untuk menurunkan Brier score.\n"
+        "5. **Threshold Strategy**: pertahankan default 0.7 untuk keputusan **Promote**, 0.5–0.7 **Need Review**."
+    )
 
 # --- Run Page ---
 show_model_analysis()
