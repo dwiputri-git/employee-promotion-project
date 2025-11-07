@@ -103,8 +103,6 @@ with col3:
 st.markdown("---") # Visual divider
 
 # --- Model Information Section (Framed in a Card) ---
-# Menggunakan st.container() untuk membingkai informasi model dengan custom class (metric-card)
-st.markdown('<div class="metric-card">', unsafe_allow_html=True)
 st.subheader("📝 Model Information")
 
 # Use a table for neat, aligned presentation of metrics
