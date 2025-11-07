@@ -102,7 +102,7 @@ if input_mode == "📂 Upload File CSV":
                 df_result = df_raw.copy()
                 df_result["Prediction"] = preds
                 df_result["Probability"] = probs
-                df_result["Recommendation"] = np.where(df_result["Probability"] >= 70, "Promote", "Not Ready")
+                df_result["Recommendation"] = np.where(df_result["Probability"] >= 50, "Promote", "Not Ready")
 
                 # ====== TAMPILKAN ======
                 st.markdown("### 📋 Hasil Prediksi")
@@ -181,7 +181,7 @@ elif input_mode == "✍️ Input Manual":
         # ====== PREDIKSI ======
         preds = model.predict(data_input[expected_features])
         probs = model.predict_proba(data_input[expected_features])[:, 1] * 100
-        recommendation = "Promote" if probs[0] >= 70 else "Not Ready"
+        recommendation = "Promote" if probs[0] >= 50 else "Not Ready"
 
         # ====== HASIL ======
         st.markdown("---")
