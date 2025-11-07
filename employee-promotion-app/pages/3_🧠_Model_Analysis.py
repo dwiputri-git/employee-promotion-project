@@ -248,7 +248,6 @@ def show_model_analysis():
     4. **Gunakan threshold konservatif (0.7)** untuk keputusan *Promote*, dan 0.5–0.7 untuk *Need Review*.  
     """
 )
-)
 
 # -----------------------------
 # ✅ Jalankan Page
