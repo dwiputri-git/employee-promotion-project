@@ -54,23 +54,32 @@ def show_model_analysis():
     # ============================
     st.subheader("📉 Confusion Matrix")
 
-    # Nilai manual sesuai model
+    # Data manual
     conf_matrix = np.array([[124, 9],
-                        [46, 9]])
+                            [46, 9]])
     percentages = np.array([[66.0, 4.8],
-                        [24.5, 4.8]])
-
-    fig, ax = plt.subplots(figsize=(4, 4))
-    sns.heatmap(conf_matrix, annot=False, fmt="d", cmap="Blues", cbar=False, ax=ax)
-    st.markdown("---")
-    # Tambah label angka + persentase
+                            [24.5, 4.8]])
+    
+    # Custom colormap kontras tinggi
+    colors = sns.color_palette("dark:blue", as_cmap=True)
+    
+    fig, ax = plt.subplots(figsize=(4.5, 4.5))
+    sns.heatmap(conf_matrix, annot=False, fmt="d", cmap=colors, cbar=False, ax=ax, linewidths=1, linecolor="white")
+    
+    # Tambah teks angka + persen
     for i in range(2):
         for j in range(2):
-            ax.text(j + 0.5, i + 0.5, f"{conf_matrix[i, j]}\n({percentages[i, j]}%)",
-                    ha='center', va='center', color='white' if conf_matrix[i, j] > 30 else 'black', fontsize=11)
+            val = conf_matrix[i, j]
+            pct = percentages[i, j]
+            color = "white" if val > 30 else "black"
+            ax.text(j + 0.5, i + 0.5, f"{val}\n({pct:.1f}%)",
+                    ha='center', va='center', color=color, fontsize=12, fontweight='bold')
     
     ax.set_xlabel("Predicted Label")
     ax.set_ylabel("Actual Label")
+    ax.set_xticklabels(["Not Eligible", "Eligible"], rotation=20)
+    ax.set_yticklabels(["Not Eligible", "Eligible"], rotation=0)
+    ax.set_title("Confusion Matrix", fontsize=13, pad=10, fontweight="bold")
     st.pyplot(fig)
     # ============================
     # 📈 ROC CURVE (MANUAL)
