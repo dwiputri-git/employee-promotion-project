@@ -239,6 +239,15 @@ def show_model_analysis():
     sementara aspek **usia** dan **pelatihan** berperan sebagai faktor pendukung.
     * Distribusi probabilitas menunjukkan sebagian besar prediksi masih di bawah threshold.
     """
+    st.markdown("### Model Recommendations")
+    st.markdown(
+    """
+    1. **Tingkatkan data dan fitur** – tambahkan variabel baru agar model lebih kaya informasi.  
+    2. **Handling class imbalance** – gunakan `class_weight='balanced'` atau SMOTE supaya model tidak bias ke karyawan *Not Ready*.  
+    3. **Lakukan hyperparameter tuning** (mis. GridSearch) untuk meningkatkan akurasi, recall dan PR-AUC.  
+    4. **Gunakan threshold konservatif (0.7)** untuk keputusan *Promote*, dan 0.5–0.7 untuk *Need Review*.  
+    """
+)
 )
 
 # -----------------------------
