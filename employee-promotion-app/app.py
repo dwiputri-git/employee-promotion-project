@@ -76,13 +76,13 @@ st.markdown('<h1 class="main-header">Employee Promotion Prediction Dashboard</h1
 st.markdown("## Welcome!")
 
 st.markdown("""
-This application uses machine learning to predict employee promotion eligibility.romosi berdasarkan kriteria kinerja dan data historis.
+This application uses machine learning to predict employee promotion eligibility.
 """)
 
 # --- Pages Available Section (Using Columns for Structure) ---
-st.header("✨ Navigasi Fitur Utama")
+st.header("Pages Available")
 st.markdown("""
-Silakan gunakan menu di sidebar untuk menjelajahi fungsionalitas aplikasi.
+Navigate using the sidebar to explore:
 """)
 
 # Use columns to present features clearly
@@ -90,15 +90,15 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("### 📊 Dashboard")
-    st.write("Visualisasikan **Key Performance Indicators (KPI)**, metrik rata-rata karyawan, dan ringkasan performa model.")
+    st.write("View KPIs, model performance, and prediction tables.")
 
 with col2:
     st.markdown("### 🔮 Predictions")
-    st.write("Unggah data baru atau masukkan detail karyawan secara manual untuk mendapatkan hasil prediksi promosi **secara *real-time***.")
+    st.write("Upload CSV for predictions.")
     
 with col3:
     st.markdown("### 📈 Model Analysis")
-    st.write("Analisis mendalam mengenai **akurasi, presisi, recall**, serta pemeriksaan kesetaraan (*fairness*) model.")
+    st.write("Detailed model evaluation and fairness analysis.")
 
 st.markdown("---") # Visual divider
 
