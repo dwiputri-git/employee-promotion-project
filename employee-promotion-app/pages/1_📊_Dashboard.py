@@ -52,6 +52,7 @@ def generate_predictions(df):
     # --- Final Recommendation Logic ---
     def final_recommendation(p):
         if p >= 0.51:
+            return "Promote"
         else:
             return "Not Ready"
 
