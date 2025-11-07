@@ -164,6 +164,7 @@ selected_cols = [
     "Project_Level",
     "Tenure_Level",
     "Promotion_Eligible",
+    "Predictions",
     "Probability",
     "Recommendation",
 ]
