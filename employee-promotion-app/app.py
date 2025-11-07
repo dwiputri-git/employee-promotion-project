@@ -73,7 +73,7 @@ st.markdown("""
 # Main Title
 st.markdown('<h1 class="main-header">Employee Promotion Prediction Dashboard</h1>', unsafe_allow_html=True)
 
-st.markdown('<h2 class="metric-card">Welcome!</h2>', unsafe_allow_html=True)
+st.header('Welcome!')
 
 st.markdown("""
 Halo! Selamat datang di sistem prediksi promosi karyawan. Aplikasi ini memanfaatkan model *machine learning* untuk memberikan penilaian kelayakan promosi berdasarkan kriteria kinerja dan data historis.
