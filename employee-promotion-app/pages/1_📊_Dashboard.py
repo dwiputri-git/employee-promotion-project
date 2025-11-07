@@ -85,9 +85,9 @@ colA, colB = st.columns(2)
 with colA:
     st.markdown("**Distribusi Rekomendasi Promosi**")
     fig1, ax1 = plt.subplots()
-    order = ["Not Ready", "Need Review", "Promote"]
+    order = ["Not Ready", "Promote"]
     df_pred["Recommendation"].value_counts().reindex(order).plot(
-        kind="bar", color=["#FFCDD2", "#FFF59D", "#C8E6C9"], ax=ax1
+        kind="bar", color=["#FFCDD2", "#C8E6C9"], ax=ax1
     )
     plt.title("Distribusi Hasil Rekomendasi")
     plt.xticks(rotation=0)
