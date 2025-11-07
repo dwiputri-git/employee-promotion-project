@@ -15,9 +15,8 @@ st.set_page_config(
 # Custom CSS for Dark Theme
 st.markdown("""
 <style>
-    /* Override Streamlit's general background elements if needed (though built-in dark theme often handles this) */
     .stApp {
-        background-color: #0e1117; /* Streamlit dark background */
+        background-color: #636573;
         color: #fafafa;
     }
     
