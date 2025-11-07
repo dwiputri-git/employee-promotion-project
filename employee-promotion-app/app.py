@@ -12,21 +12,42 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Custom CSS for Dark Theme
 st.markdown("""
 <style>
+    /* Override Streamlit's general background elements if needed (though built-in dark theme often handles this) */
+    .stApp {
+        background-color: #0e1117; /* Streamlit dark background */
+        color: #fafafa;
+    }
+    
     .main-header {
         font-size: 2.5rem;
-        color: #e022d4;
+        color: #8b5cf6; /* A brighter, contrasting purple for dark mode */
         text-align: center;
         margin-bottom: 2rem;
     }
+    
+    /* Darker card background for contrast, and a bright accent border */
     .metric-card {
-        background-color: #f0f2f6;
+        background-color: #1f2a37; /* Slightly lighter than the main background */
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
+        border-left: 4px solid #38bdf8; /* Vibrant light blue/cyan accent */
+        color: #f0f0f0; /* Ensure text inside the card is light */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
     }
+    
+    /* Ensure general text colors are light */
+    h1, h2, h3, h4, p, label, .stText {
+        color: #f0f0f0 !important;
+    }
+    
+    /* Adjust Streamlit's native elements text color (e.g., Markdown blocks) */
+    div[data-testid="stMarkdownContainer"] {
+        color: #f0f0f0;
+    }
+    
     .prediction-table {
         font-size: 0.9rem;
     }
