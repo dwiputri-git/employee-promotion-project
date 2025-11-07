@@ -39,7 +39,7 @@ df = load_data()
 # -----------------------------
 # ✅ Generate Predictions (+ Confidence)
 # -----------------------------
-THRESHOLD = 0.5  # kamu bisa ubah kalau perlu
+THRESHOLD = 0.5 
 
 def prob_to_confidence_label(p: float, thr: float = THRESHOLD) -> str:
     dist = abs(p - thr)
@@ -56,17 +56,28 @@ def generate_predictions(df):
     preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
 
-    # kolom utama
+    # Kolom utama
     df = df.copy()
     df["Prediction"] = preds
     df["Probability"] = probs
 
-    # --- NEW: confidence score & label
-    df["Confidence_Score"] = np.abs(df["Probability"] - THRESHOLD)
+    # --- Confidence label
     df["Confidence"] = df["Probability"].apply(prob_to_confidence_label)
 
-    # rekomendasi (tetap simple)
-    df["Recommendation"] = np.where(df["Prediction"] == 1, "Promote", "Not Ready")
+    # --- Final Recommendation Logic
+    def final_recommendation(row):
+        p = row["Probability"]
+        conf = row["Confidence"]
+        if p >= 0.7 and conf == "High":
+            return "Promote"
+        elif 0.5 <= p < 0.7:
+            return "Promote (Review)"
+        elif p < 0.5 and conf == "Low":
+            return "Not Ready (Review)"
+        else:
+            return "Not Ready"
+
+    df["Recommendation"] = df.apply(final_recommendation, axis=1)
     return df
 
 df_pred = generate_predictions(df)
