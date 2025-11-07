@@ -15,15 +15,15 @@ st.set_page_config(page_title="Dashboard", layout="wide")
 
 @st.cache_resource
 def load_model():
-BASE_DIR = os.path.dirname(os.path.abspath(file))
-MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model2.pkl")
-FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns2.pkl")
-
-with open(MODEL_PATH, "rb") as f:  
-    model = pickle.load(f)  
-with open(FEATURE_PATH, "rb") as f:  
-    feature_columns = pickle.load(f)  
-return model, feature_columns
+    BASE_DIR = os.path.dirname(os.path.abspath(file))
+    MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model2.pkl")
+    FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns2.pkl")
+    
+    with open(MODEL_PATH, "rb") as f:  
+        model = pickle.load(f)  
+    with open(FEATURE_PATH, "rb") as f:  
+        feature_columns = pickle.load(f)  
+    return model, feature_columns
 
 model, feature_columns = load_model()
 
@@ -35,9 +35,9 @@ model, feature_columns = load_model()
 
 @st.cache_data
 def load_data():
-BASE_DIR = os.path.dirname(os.path.abspath(file))
-DATA_PATH = os.path.join(BASE_DIR, "..", "data", "cleaned_data.csv")
-df = pd.read_csv(DATA_PATH)
+    BASE_DIR = os.path.dirname(os.path.abspath(file))
+    DATA_PATH = os.path.join(BASE_DIR, "..", "data", "cleaned_data.csv")
+    df = pd.read_csv(DATA_PATH)
 return df
 
 df = load_data()
@@ -50,13 +50,13 @@ df = load_data()
 
 @st.cache_data
 def generate_predictions(df):
-X = df[feature_columns].copy()
-preds = model.predict(X)
-probs = model.predict_proba(X)[:, 1]
-
-df["Prediction"] = preds  
-df["Probability"] = probs  
-df["Recommendation"] = np.where(df["Prediction"] == 1, "Promote", "Not Ready")  
+    X = df[feature_columns].copy()
+    preds = model.predict(X)
+    probs = model.predict_proba(X)[:, 1]
+    
+    df["Prediction"] = preds  
+    df["Probability"] = probs  
+    df["Recommendation"] = np.where(df["Prediction"] == 1, "Promote", "Not Ready")  
 return df
 
 df_pred = generate_predictions(df)
@@ -114,8 +114,8 @@ Format angka biar rapi
 numeric_cols = df_pred.select_dtypes(include=["float", "int"]).columns
 exclude_cols = ["Probability", "Promotion_Rate", "Confidence_Score"]
 for col in numeric_cols:
-if col not in exclude_cols:
-df_pred[col] = df_pred[col].round(0).astype("Int64")
+    if col not in exclude_cols:
+        df_pred[col] = df_pred[col].round(0).astype("Int64")
 
 Pilih kolom penting aja
 
