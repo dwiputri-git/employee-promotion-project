@@ -39,7 +39,7 @@ df = load_data()
 # -----------------------------
 # ✅ Generate Predictions (+ Confidence)
 # -----------------------------
-THRESHOLD = 0.5 
+THRESHOLD = 0.4 
 
 def prob_to_confidence_label(p: float, thr: float = THRESHOLD) -> str:
     dist = abs(p - thr)
