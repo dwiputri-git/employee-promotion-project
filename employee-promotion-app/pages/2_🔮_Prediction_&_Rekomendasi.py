@@ -23,140 +23,173 @@ def feature_engineering(df):
         df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
         df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
         df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
-        try:
-            df['Project_Level'] = pd.qcut(
-                df['Projects_per_Years'], q=4,
-                labels=['Low', 'Moderate', 'High', 'Very High'],
-                duplicates='drop'
-            )
-        except Exception:
-            df['Project_Level'] = 'Unknown'
-    
+        df['Project_Level'] = pd.qcut(df['Projects_per_Years'], q=4, labels=['Low','Moderate','High','Very High'])
     if 'Training_Hours' in df.columns:
-        try:
-            df['Training_Level'] = pd.qcut(
-                df['Training_Hours'], q=5,
-                labels=['Very Low', 'Low', 'Moderate', 'High', 'Very High'],
-                duplicates='drop'
-            )
-        except Exception:
-            df['Training_Level'] = 'Unknown'
-    
+        df['Training_Level'] = pd.qcut(df['Training_Hours'], q=5, labels=['Very Low','Low','Moderate','High','Very High'])
     if 'Leadership_Score' in df.columns:
-        try:
-            df['Leadership_Level'] = pd.qcut(
-                df['Leadership_Score'], q=4,
-                labels=['Low', 'Medium', 'High', 'Very High'],
-                duplicates='drop'
-            )
-        except Exception:
-            df['Leadership_Level'] = 'Unknown'
-    
+        df['Leadership_Level'] = pd.qcut(df['Leadership_Score'], q=4, labels=['Low','Medium','High','Very High'])
     if 'Years_at_Company' in df.columns:
-        try:
-            df['Tenure_Level'] = pd.qcut(
-                df['Years_at_Company'], q=4,
-                labels=['New', 'Mid', 'Senior', 'Veteran'],
-                duplicates='drop'
-            )
-        except Exception:
-            df['Tenure_Level'] = 'Unknown'
-    
+        df['Tenure_Level'] = pd.qcut(df['Years_at_Company'], q=4, labels=['New','Mid','Senior','Veteran'])
     if 'Age' in df.columns:
-        try:
-            df['Age_Group'] = pd.qcut(
-                df['Age'], q=4,
-                labels=['Young', 'Early Mid', 'Late Mid', 'Senior'],
-                duplicates='drop'
-            )
-        except Exception:
-            df['Age_Group'] = 'Unknown'
-    
+        df['Age_Group'] = pd.qcut(df['Age'], q=4, labels=['Young','Early Mid','Late Mid','Senior'])
     return df
 
 
+# ====================== STYLE ======================
+st.markdown("""
+    <style>
+    .main { background-color: #ffffff; }
+    .upload-box {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background-color: #f9f9f9;
+    }
+    .highlight {
+        color: #4B0082;
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 
 # ====================== PAGE TITLE ======================
-st.title("🔮 Prediction & Rekomendasi Promosi")
-st.markdown("Prediksi kelayakan promosi berdasarkan kinerja dan karakteristik karyawan.")
+st.title("🔮 Prediction & Rekomendasi")
+st.write("Pilih cara input data karyawan untuk diprediksi apakah layak promosi.")
 
 
-# ====================== INPUT MANUAL ======================
-st.markdown("### ✍️ Input Data Karyawan")
-
-with st.form("manual_input_form"):
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        employee_id = st.text_input("Employee ID", "EMP9999")
-        age = st.number_input("Age", 20, 60, 30)
-        years_at_company = st.number_input("Years at Company", 0, 30, 5)
-    with col2:
-        performance_score = st.slider("Performance Score", 1, 5, 3)
-        leadership_score = st.slider("Leadership Score (1–100)", 1.0, 100.0, 75.0)
-        training_hours = st.number_input("Training Hours (1–200)", 1, 200, 50)
-    with col3:
-        projects_handled = st.number_input("Projects Handled", 0, 20, 6)
-        peer_review_score = st.slider("Peer Review Score (1–100)", 1.0, 100.0, 80.0)
-        current_position_level = st.selectbox("Current Position Level", ['Junior','Mid','Senior','Lead'])
-
-    submitted = st.form_submit_button("🔍 Prediksi Sekarang")
+# ====================== OPSI INPUT ======================
+input_mode = st.radio("Pilih metode input:", ["📂 Upload File CSV", "✍️ Input Manual"], horizontal=True)
 
 
-# ====================== PREDIKSI ======================
-if submitted:
-    model = load_model()
+# ====================== LOAD MODEL ======================
+model = load_model()
 
-    # ====== DataFrame Input ======
-    data_input = pd.DataFrame({
-        "Employee_ID": [employee_id],
-        "Age": [age],
-        "Years_at_Company": [years_at_company],
-        "Performance_Score": [performance_score],
-        "Leadership_Score": [leadership_score],
-        "Training_Hours": [training_hours],
-        "Projects_Handled": [projects_handled],
-        "Peer_Review_Score": [peer_review_score],
-        "Current_Position_Level": [current_position_level]
-    })
 
-    # ====== Feature Engineering ======
-    data_input = feature_engineering(data_input)
+# ====================== INPUT MODE 1 - UPLOAD CSV ======================
+if input_mode == "📂 Upload File CSV":
+    uploaded_file = st.file_uploader("Upload file CSV", type=["csv"], label_visibility="collapsed")
 
-    # ====== Encode kategorikal manual (karena ada string) ======
-    data_encoded = pd.get_dummies(data_input, drop_first=True)
-
-    # ====== Cocokkan dengan model feature columns ======
-    if hasattr(model, "feature_names_in_"):
-        expected_features = model.feature_names_in_
+    if uploaded_file is None:
+        st.markdown("""
+            <div class="upload-box">
+                <p>📂 <b>Drag and drop file di sini</b> atau klik <span class="highlight">Browse files</span></p>
+                <p style="color:gray; font-size:13px;">Limit 200MB per file • CSV</p>
+            </div>
+        """, unsafe_allow_html=True)
     else:
-        expected_features = data_encoded.columns
+        try:
+            df_raw = pd.read_csv(uploaded_file)
+            st.success(f"✅ File berhasil diunggah: **{uploaded_file.name}**")
+            df = feature_engineering(df_raw)
 
-    for col in expected_features:
-        if col not in data_encoded.columns:
-            data_encoded[col] = 0  # tambahkan kolom yang hilang
+            if hasattr(model, "feature_names_in_"):
+                expected_features = model.feature_names_in_
+            else:
+                expected_features = df.columns
 
-    X_input = data_encoded[expected_features]
+            missing_cols = [col for col in expected_features if col not in df.columns]
 
-    # ====== Prediksi ======
-    pred = model.predict(X_input)[0]
-    prob = model.predict_proba(X_input)[0][1] * 100
-    recommendation = "Promote" if prob >= 70 else "Not Ready"
+            if missing_cols:
+                st.error(f"❌ Kolom berikut hilang di file kamu: {', '.join(missing_cols)}")
+            else:
+                # ====== PREDIKSI ======
+                X_new = df[expected_features]
+                preds = model.predict(X_new)
+                probs = model.predict_proba(X_new)[:, 1] * 100
 
-    # ====== Hasil ======
-    st.markdown("---")
-    st.subheader("📊 Hasil Prediksi")
+                df_result = df_raw.copy()
+                df_result["Prediction"] = preds
+                df_result["Probability"] = probs
+                df_result["Recommendation"] = np.where(df_result["Probability"] >= 70, "Promote", "Not Ready")
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.metric("Probabilitas Siap Promosi", f"{prob:.2f}%")
-    with col_b:
-        st.metric("Rekomendasi", recommendation)
+                # ====== TAMPILKAN ======
+                st.markdown("### 📋 Hasil Prediksi")
+                def highlight_recommendation(val):
+                    color = "#b6e7a6" if val == "Promote" else "#f8c8c8"
+                    return f"background-color: {color}"
 
-    if recommendation == "Promote":
-        st.success("✅ Karyawan ini direkomendasikan untuk promosi.")
-    else:
-        st.warning("⚠️ Karyawan ini belum siap untuk promosi.")
+                st.dataframe(
+                    df_result.style
+                    .applymap(highlight_recommendation, subset=["Recommendation"])
+                    .format({"Probability": "{:.2f}%"})
+                )
 
-    # ====== Tabel Ringkas ======
-    st.markdown("### 📋 Detail Input")
-    st.dataframe(data_input.T, use_container_width=True)
+                csv = df_result.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    label="💾 Download Hasil Prediksi",
+                    data=csv,
+                    file_name="hasil_prediksi_promosi.csv",
+                    mime="text/csv"
+                )
+
+        except Exception as e:
+            st.error(f"Terjadi kesalahan saat membaca file: {e}")
+
+
+# ====================== INPUT MODE 2 - MANUAL FORM ======================
+elif input_mode == "✍️ Input Manual":
+    st.markdown("### 🧾 Isi Data Karyawan")
+
+    with st.form("manual_input_form"):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            age = st.number_input("Age", 18, 65, 30)
+            years_at_company = st.number_input("Years at Company", 0, 40, 5)
+            training_hours = st.number_input("Training Hours", 0, 500, 40)
+        with col2:
+            leadership_score = st.number_input("Leadership Score", 0.0, 1.0, 0.6)
+            projects_handled = st.number_input("Projects Handled", 0, 100, 5)
+            previous_year_rating = st.slider("Previous Year Rating", 0.0, 5.0, 3.5, 0.5)
+        with col3:
+            department = st.selectbox("Department", ["Sales", "Technical", "Operations", "HR", "Finance", "IT"])
+            education = st.selectbox("Education", ["Bachelor", "Master", "PhD"])
+            gender = st.selectbox("Gender", ["Male", "Female"])
+
+        submitted = st.form_submit_button("🔍 Prediksi Sekarang")
+
+    if submitted:
+        # ====== BENTUKKAN DATAFRAME ======
+        data_input = pd.DataFrame({
+            "Age": [age],
+            "Years_at_Company": [years_at_company],
+            "Training_Hours": [training_hours],
+            "Leadership_Score": [leadership_score],
+            "Projects_Handled": [projects_handled],
+            "Previous_Year_Rating": [previous_year_rating],
+            "Department": [department],
+            "Education": [education],
+            "Gender": [gender]
+        })
+
+        # ====== FEATURE ENGINEERING ======
+        data_input = feature_engineering(data_input)
+
+        if hasattr(model, "feature_names_in_"):
+            expected_features = model.feature_names_in_
+        else:
+            expected_features = data_input.columns
+
+        missing_cols = [col for col in expected_features if col not in data_input.columns]
+
+        if missing_cols:
+            st.warning(f"⚠️ Beberapa kolom tidak ditemukan: {', '.join(missing_cols)} — model tetap akan dijalankan jika bisa.")
+            for col in missing_cols:
+                data_input[col] = 0  # isi default 0 untuk kolom hilang
+
+        # ====== PREDIKSI ======
+        preds = model.predict(data_input[expected_features])
+        probs = model.predict_proba(data_input[expected_features])[:, 1] * 100
+        recommendation = "Promote" if probs[0] >= 70 else "Not Ready"
+
+        # ====== HASIL ======
+        st.markdown("---")
+        st.subheader("📊 Hasil Prediksi")
+        st.metric("Probabilitas Siap Promosi", f"{probs[0]:.2f}%")
+        st.metric("Rekomendasi", recommendation, delta=None)
+
+        if recommendation == "Promote":
+            st.success("✅ Karyawan ini direkomendasikan untuk promosi.")
+        else:
+            st.warning("⚠️ Karyawan ini belum siap untuk promosi.")
