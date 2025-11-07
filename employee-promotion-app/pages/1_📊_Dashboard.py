@@ -13,8 +13,8 @@ st.set_page_config(page_title="Dashboard", layout="wide")
 @st.cache_resource
 def load_model():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model.pkl")
-    FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns.pkl")
+    MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model2.pkl")
+    FEATURE_PATH = os.path.join(BASE_DIR, "..", "feature_columns2.pkl")
 
     with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
