@@ -83,6 +83,9 @@ if input_mode == "📂 Upload File CSV":
             df_raw = pd.read_csv(uploaded_file)
             st.success(f"✅ File berhasil diunggah: **{uploaded_file.name}**")
 
+            # Isi nilai kosong dengan 0
+            df_raw = df_raw.fillna(0)
+
             # Pastikan semua kolom numerik jadi integer
             for col in df_raw.select_dtypes(include=['float64', 'int64']).columns:
                 df_raw[col] = df_raw[col].astype(int)
