@@ -6,8 +6,8 @@ import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="Employee Promotion Prediction",
-    page_icon="💼",
+    page_title="EMPLOYEE PROMOTION PREDICTION",
+    page_icon="👨‍💼",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -17,7 +17,7 @@ st.markdown("""
 <style>
     .stApp {
         background-color: #181836;
-        color: #fafafa;
+        color: #e4e4ed;
     }
     
     .main-header {
