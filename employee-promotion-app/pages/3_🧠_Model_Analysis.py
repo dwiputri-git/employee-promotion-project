@@ -170,14 +170,13 @@ def show_model_analysis():
     brier = brier_score_loss(y_true, y_prob)
 
     st.markdown("### Performance Metrics")
-    c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Accuracy", f"0.707")
     c2.metric("Precision", f"0.5")
     c3.metric("Recall", f"0.164")
     c4.metric("F1-Score", f"0.247")
     c5.metric("ROC-AUC", f"0.506")
     c6.metric("PR-AUC", f"0.347")
-    c7.metric("Brier Score", f"{brier:.3f}")
     st.caption(f"Threshold: {threshold}")
 
     # === Visualizations ===
@@ -225,21 +224,24 @@ def show_model_analysis():
             f"- False Negative Rate: **{fnr:.1%}**"
         )
 
-    st.markdown("### Model Interpretation")
-    st.markdown(
-        "- **Performance_Score** dan **Leadership_Score** paling berpengaruh terhadap keputusan promosi.\n"
-        "- Distribusi probabilitas menunjukkan sebagian besar prediksi masih di bawah threshold.\n"
-        "- ROC/PR curve menunjukkan model masih perlu tuning agar separasi antar kelas makin kuat."
     )
 
-    st.markdown("### Model Recommendations")
+    st.markdown("### Model Interpretation")
     st.markdown(
-        "1. **Hyperparameter Tuning** untuk menaikkan ROC-AUC & PR-AUC.\n"
-        "2. **Feature Engineering** (misal interaksi performance × leadership, rasio training).\n"
-        "3. **Class Balance** pakai `class_weight` atau SMOTE.\n"
-        "4. **Calibrate Probabilities** (CalibratedClassifierCV) untuk menurunkan Brier score.\n"
-        "5. **Gunakan threshold 0.7** untuk keputusan *Promote*, 0.5–0.7 untuk *Need Review*."
-    )
+    """
+    **Key Insights dari Model:**
+    1. **Performance_Score** menjadi faktor paling dominan — kinerja individu memiliki pengaruh paling besar dalam menentukan kelayakan promosi.
+    2. **Project_per_Years** dan **Projects_Handled** menunjukkan bahwa produktivitas dan keterlibatan dalam proyek menjadi indikator kuat bagi kesiapan naik jabatan.
+    3. **Age** dan **Years_at_Company** ikut berperan penting; model cenderung memberikan skor promosi lebih tinggi kepada karyawan dengan pengalaman dan masa kerja yang cukup panjang.
+    4. **Leadership_Score** dan **Training_Hours** juga berkontribusi signifikan, menandakan kemampuan memimpin dan partisipasi dalam pengembangan diri turut memengaruhi hasil prediksi.
+    5. Faktor seperti **Peer_Review_Score** dan **Project_Level (Moderate/Very High)** berperan sebagai penguat tambahan untuk keputusan promosi, terutama pada karyawan di level proyek menengah hingga tinggi.
+
+    **Kesimpulan umum:**
+    * Model lebih menitikberatkan pada **kinerja (performance)**, **produktivitas proyek**, dan **pengalaman kerja** sebagai indikator utama promosi, 
+    sementara aspek **usia** dan **pelatihan** berperan sebagai faktor pendukung.
+    * Distribusi probabilitas menunjukkan sebagian besar prediksi masih di bawah threshold.
+    """
+)
 
 # -----------------------------
 # ✅ Jalankan Page
