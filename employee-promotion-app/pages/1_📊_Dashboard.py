@@ -71,9 +71,9 @@ def generate_predictions(df):
         if p >= 0.7 and conf == "High":
             return "Promote"
         elif 0.5 <= p < 0.7:
-            return "Promote (Review)"
+            return "Promote (Need Review)"
         elif p < 0.5 and conf == "Low":
-            return "Not Ready (Review)"
+            return "Not Ready"
         else:
             return "Not Ready"
 
@@ -156,6 +156,8 @@ df_show = df_pred[selected_cols].copy()
 def highlight_recommendation(val):
     if val == "Promote":
         return "background-color: #C8E6C9; color: #2E7D32; font-weight: bold;"
+    elif val == "Promote (Need Review)":
+        return "background-color: #e0d904; color: #C62828; font-weight: bold;"
     elif val == "Not Ready":
         return "background-color: #FFCDD2; color: #C62828; font-weight: bold;"
     return ""
