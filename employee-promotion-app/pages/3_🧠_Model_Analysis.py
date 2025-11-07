@@ -44,7 +44,7 @@ def show_model_analysis():
     col3.markdown(metric_html("Recall", "0.164"), unsafe_allow_html=True)
     col4.markdown(metric_html("F1-Score", "0.247"), unsafe_allow_html=True)
     col5.markdown(metric_html("ROC AUC", "0.506"), unsafe_allow_html=True)
-    col5.markdown(metric_html("PR AUC", "0.347"), unsafe_allow_html=True)
+    col6.markdown(metric_html("PR AUC", "0.347"), unsafe_allow_html=True)
 
     st.markdown("---")
 
