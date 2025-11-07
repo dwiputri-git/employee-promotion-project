@@ -61,7 +61,7 @@ def show_model_analysis():
                             [24.5, 4.8]])
     
     # Custom colormap
-    colors = sns.color_palette("Orange", as_cmap=True)
+    colors = sns.color_palette("Oranges", as_cmap=True)
     
     fig, ax = plt.subplots(figsize=(3.8, 3.8))
     sns.heatmap(conf_matrix, 
