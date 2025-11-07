@@ -118,4 +118,4 @@ if submitted:
 
     # ====== Tabel Ringkas ======
     st.markdown("### 📋 Detail Input")
-    st.dataframe(data_in_
+    st.dataframe(data_input.T, use_container_width=True)
