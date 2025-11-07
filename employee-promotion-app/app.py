@@ -17,7 +17,7 @@ st.markdown("""
 <style>
     .main-header {
         font-size: 2.5rem;
-        color: #e022d4;
+        color: #0f1329;
         text-align: center;
         margin-bottom: 2rem;
     }
@@ -34,14 +34,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Welcome page
-st.markdown('<h1 class="main-header">Employee Promotion Prediction</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">Employee Promotion Eligibility Prediction</h1>', unsafe_allow_html=True)
 
 st.markdown("""
 ## Welcome!
 
 This application uses machine learning to predict employee promotion eligibility.
 
-### 📊 Pages Available
+### 📑 Pages Available
 
 Navigate using the sidebar to explore:
 
@@ -49,13 +49,9 @@ Navigate using the sidebar to explore:
 2. **🔮 Predictions** - Upload CSV or input data manually for predictions  
 3. **📈 Model Analysis** - Detailed model evaluation and fairness analysis
 
-### 🚀 Getting Started
-
-Use the sidebar navigation to explore the different features of the application.
-
 ### 📝 Model Information
 
-- **Model Type**: Logistic Regression
+- **Model Type**: Random Forest
 - **PR-AUC**: 0.350
 - **Accuracy**: 0.544
 - **Threshold**: 0.209 (calibrated)
