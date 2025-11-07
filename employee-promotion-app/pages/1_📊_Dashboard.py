@@ -37,16 +37,35 @@ def load_data():
 df = load_data()
 
 # -----------------------------
-# ✅ Generate Predictions
+# ✅ Generate Predictions (+ Confidence)
 # -----------------------------
+THRESHOLD = 0.5  # kamu bisa ubah kalau perlu
+
+def prob_to_confidence_label(p: float, thr: float = THRESHOLD) -> str:
+    dist = abs(p - thr)
+    if dist >= 0.30:
+        return "High"
+    elif dist >= 0.10:
+        return "Medium"
+    else:
+        return "Low"
+
 @st.cache_data
 def generate_predictions(df):
     X = df[feature_columns].copy()
     preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
 
+    # kolom utama
+    df = df.copy()
     df["Prediction"] = preds
     df["Probability"] = probs
+
+    # --- NEW: confidence score & label
+    df["Confidence_Score"] = np.abs(df["Probability"] - THRESHOLD)
+    df["Confidence"] = df["Probability"].apply(prob_to_confidence_label)
+
+    # rekomendasi (tetap simple)
     df["Recommendation"] = np.where(df["Prediction"] == 1, "Promote", "Not Ready")
     return df
 
@@ -55,7 +74,7 @@ df_pred = generate_predictions(df)
 # -----------------------------
 # ✅ Dashboard Layout
 # -----------------------------
-st.title("📊 Employee Promotion Dashboard")
+st.title("📊 Dashboard")
 
 col1, col2, col3 = st.columns(3)
 total_employees = len(df_pred)
@@ -86,52 +105,62 @@ st.bar_chart(avg_score)
 # ✅ Sample Data (Custom Columns + Styling)
 # -----------------------------
 st.subheader("📋 Sample Data dengan Prediksi")
-# --- Setelah prediksi selesai dan sebelum tampil di Streamlit ---
-df_pred = generate_predictions(df)
+df_pred = generate_predictions(df)  # pastikan sudah include kolom baru
 
-# Format angka biar rapi
+# format angka biar rapi
 numeric_cols = df_pred.select_dtypes(include=["float", "int"]).columns
 exclude_cols = ["Probability", "Promotion_Rate", "Confidence_Score"]
 for col in numeric_cols:
     if col not in exclude_cols:
         df_pred[col] = df_pred[col].round(0).astype("Int64")
-# Pilih kolom penting aja
+
+# kolom yang ditampilkan
 selected_cols = [
-    'Employee_ID', 
-    'Age', 
-    'Years_at_Company', 
+    'Employee_ID',
+    'Age',
+    'Years_at_Company',
     'Performance_Score',
-    'Leadership_Score', 
-    'Training_Hours', 
+    'Leadership_Score',
+    'Training_Hours',
     'Projects_Handled',
-    'Peer_Review_Score', 
-    'Current_Position_Level', 
-    'Training_Level', 
-    'Leadership_Level', 
+    'Peer_Review_Score',
+    'Current_Position_Level',
+    'Training_Level',
+    'Leadership_Level',
     'Projects_per_Years',
-    'Project_Level', 
-    'Tenure_Level', 
+    'Project_Level',
+    'Tenure_Level',
     'Age_Group',
     'Promotion_Eligible',
     "Prediction",
     "Probability",
+    "Confidence",          # <-- NEW
+    "Confidence_Score",    # <-- NEW (opsional buat diagnosa)
     "Recommendation"
 ]
-
-# Pastikan kolom ada (biar gak error)
-selected_cols = [col for col in selected_cols if col in df_pred.columns]
+selected_cols = [c for c in selected_cols if c in df_pred.columns]
 df_show = df_pred[selected_cols].copy()
 
-# Styling warna untuk rekomendasi
+# styling rekomendasi & confidence
 def highlight_recommendation(val):
-    color = ""
     if val == "Promote":
-        color = "background-color: #C8E6C9; color: #2E7D32; font-weight: bold;"
+        return "background-color: #C8E6C9; color: #2E7D32; font-weight: bold;"
     elif val == "Not Ready":
-        color = "background-color: #FFCDD2; color: #C62828; font-weight: bold;"
-    return color
+        return "background-color: #FFCDD2; color: #C62828; font-weight: bold;"
+    return ""
+
+def highlight_confidence(val):
+    if val == "High":
+        return "background-color: #E8F5E9; color: #1B5E20;"
+    if val == "Medium":
+        return "background-color: #FFF8E1; color: #E65100;"
+    if val == "Low":
+        return "background-color: #FFEBEE; color: #B71C1C;"
+    return ""
 
 st.dataframe(
-    df_show.style.applymap(highlight_recommendation, subset=["Recommendation"])
-                  .format({"Probability": "{:.2%}"})
+    df_show.style
+        .applymap(highlight_recommendation, subset=["Recommendation"])
+        .applymap(highlight_confidence, subset=["Confidence"])
+        .format({"Probability": "{:.2%}", "Confidence_Score": "{:.3f}"})
 )
