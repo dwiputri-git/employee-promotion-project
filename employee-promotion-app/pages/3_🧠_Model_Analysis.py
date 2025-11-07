@@ -60,11 +60,19 @@ def show_model_analysis():
     percentages = np.array([[66.0, 4.8],
                             [24.5, 4.8]])
     
-    # Custom colormap kontras tinggi
-    colors = sns.color_palette("dark:blue", as_cmap=True)
+    # Custom colormap
+    colors = sns.color_palette("Orange", as_cmap=True)
     
-    fig, ax = plt.subplots(figsize=(4.5, 4.5))
-    sns.heatmap(conf_matrix, annot=False, fmt="d", cmap=colors, cbar=False, ax=ax, linewidths=1, linecolor="white")
+    fig, ax = plt.subplots(figsize=(3.8, 3.8))
+    sns.heatmap(conf_matrix, 
+                annot=False, 
+                fmt="d", 
+                cmap=colors, 
+                cbar=False, 
+                ax=ax, 
+                linewidths=1, 
+                linecolor="white",
+                square=True)
     
     # Tambah teks angka + persen
     for i in range(2):
@@ -75,12 +83,12 @@ def show_model_analysis():
             ax.text(j + 0.5, i + 0.5, f"{val}\n({pct:.1f}%)",
                     ha='center', va='center', color=color, fontsize=12, fontweight='bold')
     
-    ax.set_xlabel("Predicted Label")
-    ax.set_ylabel("Actual Label")
-    ax.set_xticklabels(["Not Eligible", "Eligible"], rotation=20)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    ax.set_xticklabels(["Not Eligible", "Eligible"], rotation=0)
     ax.set_yticklabels(["Not Eligible", "Eligible"], rotation=0)
     ax.set_title("Confusion Matrix", fontsize=13, pad=10, fontweight="bold")
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=False)
     # ============================
     # 📈 ROC CURVE (MANUAL)
     # ============================
