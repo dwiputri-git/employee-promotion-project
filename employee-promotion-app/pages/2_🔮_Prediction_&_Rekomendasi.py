@@ -60,7 +60,7 @@ st.write("Pilih cara input data karyawan untuk diprediksi apakah layak promosi."
 
 
 # ====================== OPSI INPUT ======================
-input_mode = st.radio("Pilih metode input:", ["📂 Upload File CSV", "✍️ Input Manual"], horizontal=True)
+input_mode = st.radio("Pilih metode input:", ["📂 Upload File CSV"], horizontal=True)
 
 
 # ====================== LOAD MODEL ======================
