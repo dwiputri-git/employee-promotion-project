@@ -15,16 +15,15 @@ st.set_page_config(
 # Custom CSS for Dark Theme and Professional Look
 st.markdown("""
 <style>
-    /* Global Background and Text Color */
     .stApp {
-        background-color: #0e1117; /* Streamlit dark background */
+        background-color: #0e1117;
         color: #f0f0f0;
     }
     
     /* Main Header Styling */
     .main-header {
         font-size: 2.5rem;
-        color: #8b5cf6; /* Vibrant purple accent for dark mode */
+        color: #8b5cf6;
         text-align: center;
         margin-bottom: 2rem;
         padding-top: 1rem;
@@ -33,12 +32,12 @@ st.markdown("""
     
     /* Card Styling for Model Information */
     .metric-card {
-        background-color: #1f2a37; /* Slightly lighter dark gray */
+        background-color: #1f2a37;
         padding: 1.5rem;
-        border-radius: 12px; /* Smoother, more modern rounded corners */
-        border-left: 5px solid #38bdf8; /* Vibrant light blue accent */
+        border-radius: 12px; 
+        border-left: 5px solid #38bdf8; 
         color: #f0f0f0;
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Deeper shadow for depth */
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
         margin-top: 1.5rem;
     }
     
@@ -72,7 +71,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Main Title
-st.markdown('<h1 class="main-header">Employee Promotion Prediction System</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">Employee Promotion Prediction Dashboard</h1>', unsafe_allow_html=True)
+
+st.markdown('<h2 class="main-header">Welcome</h2>', unsafe_allow_html=True)
 
 st.markdown("""
 Halo! Selamat datang di sistem prediksi promosi karyawan. Aplikasi ini memanfaatkan model *machine learning* untuk memberikan penilaian kelayakan promosi berdasarkan kriteria kinerja dan data historis.
