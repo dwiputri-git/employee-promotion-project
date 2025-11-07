@@ -78,7 +78,7 @@ def show_model_analysis():
             pct = percentages[i, j]
             color = "white" if val > 30 else "black"
             ax.text(j + 0.5, i + 0.5, f"{pct:.1f}%",
-                    ha='center', va='center', color=color, fontsize=12')
+                    ha='center', va='center', color=color, fontsize=12)
     
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
