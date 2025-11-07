@@ -80,7 +80,7 @@ This application uses machine learning to predict employee promotion eligibility
 """)
 
 # --- Pages Available Section (Using Columns for Structure) ---
-st.header("Pages Available")
+st.header("📑 Pages Available")
 st.markdown("""
 Navigate using the sidebar to explore:
 """)
@@ -102,26 +102,19 @@ with col3:
 
 st.markdown("---") # Visual divider
 
-# --- Getting Started Section ---
-st.header("🚀 Panduan Cepat")
-st.markdown("""
-Untuk memulai proses prediksi, Anda dapat langsung menuju halaman **Predictions** melalui sidebar. Pastikan data yang dimasukkan akurat untuk hasil prediksi yang optimal.
-""")
-
-
 # --- Model Information Section (Framed in a Card) ---
 # Menggunakan st.container() untuk membingkai informasi model dengan custom class (metric-card)
 st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-st.subheader("📝 Detail Informasi Model")
+st.subheader("📝 Model Information")
 
 # Use a table for neat, aligned presentation of metrics
 st.markdown("""
 | Metrik | Nilai | Catatan |
 | :--- | :--- | :--- |
-| **Tipe Model** | Logistic Regression | Dipilih karena interpretasi yang baik. |
-| **PR-AUC** | 0.350 | Area di bawah kurva Precision-Recall. |
-| **Akurasi** | 0.544 | Tingkat kebenaran prediksi secara keseluruhan. |
-| **Threshold (Kalibrasi)** | 0.209 | Nilai ambang batas untuk klasifikasi promosi. |
+| **Tipe Model** | Random Forest |
+| **PR-AUC** | 0.350 | 
+| **Accuracy** | 0.544 | 
+| **Threshold** | 0.209 |
 """)
 st.markdown("</div>", unsafe_allow_html=True)
 
