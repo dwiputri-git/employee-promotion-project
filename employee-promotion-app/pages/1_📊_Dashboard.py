@@ -51,10 +51,7 @@ def generate_predictions(df):
 
     # --- Final Recommendation Logic ---
     def final_recommendation(p):
-        if p >= 0.55:
-            return "Promote"
-        elif p >= 0.51:
-            return "Promote (Need Review)"
+        if p >= 0.51:
         else:
             return "Not Ready"
 
@@ -138,8 +135,6 @@ df_show = df_pred[selected_cols].copy()
 def highlight_recommendation(val):
     if val == "Promote":
         return "background-color: #C8E6C9; color: #1B5E20; font-weight: bold;"
-    elif val == "Need Review":
-        return "background-color: #FFF9C4; color: #E65100; font-weight: bold;"
     elif val == "Not Ready":
         return "background-color: #FFCDD2; color: #C62828; font-weight: bold;"
     return ""
