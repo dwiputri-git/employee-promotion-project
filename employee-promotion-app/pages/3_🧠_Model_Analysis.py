@@ -20,7 +20,7 @@ def show_model_analysis():
     # 📈 METRICS SUMMARY
     # ============================
     st.markdown("### 📊 Model Performance Summary")
-    col1, col2, col3, col4, col5, col6 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
 
     card_style = """
         background-color: #f5f9ff;
