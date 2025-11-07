@@ -224,8 +224,6 @@ def show_model_analysis():
             f"- False Negative Rate: **{fnr:.1%}**"
         )
 
-    )
-
     st.markdown("### Model Interpretation")
     st.markdown(
     """
