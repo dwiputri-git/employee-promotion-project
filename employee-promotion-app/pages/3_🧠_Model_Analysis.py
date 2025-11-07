@@ -239,7 +239,7 @@ def show_model_analysis():
     sementara aspek **usia** dan **pelatihan** berperan sebagai faktor pendukung.
     * Distribusi probabilitas menunjukkan sebagian besar prediksi masih di bawah threshold.
     """
-        
+    ) 
     st.markdown("### Model Recommendations")
     st.markdown(
     """
