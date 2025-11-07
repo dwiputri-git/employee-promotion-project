@@ -51,7 +51,7 @@ def generate_predictions(df):
 
     # --- Final Recommendation Logic ---
     def final_recommendation(p):
-        if p >= 0.51:
+        if p >= 0.50:
             return "Promote"
         else:
             return "Not Ready"
@@ -110,20 +110,13 @@ for col in numeric_cols:
 selected_cols = [
     'Employee_ID', 
     'Age', 
-    'Years_at_Company', 
     'Performance_Score',
     'Leadership_Score', 
     'Training_Hours', 
-    'Projects_Handled',
     'Peer_Review_Score', 
     'Current_Position_Level', 
-    'Training_Level', 
-    'Leadership_Level', 
-    'Projects_per_Years',
     'Project_Level', 
     'Tenure_Level', 
-    'Age_Group',
-    'Promotion_Eligible',
     "Prediction",
     "Probability",
     "Recommendation"
