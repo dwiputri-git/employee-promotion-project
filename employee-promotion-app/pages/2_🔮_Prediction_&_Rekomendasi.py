@@ -1,78 +1,113 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
+import pickle
 import os
 
-st.set_page_config(page_title="Prediction", layout="wide")
+st.set_page_config(page_title="Prediction & Rekomendasi", layout="wide")
 
+# ====== LOAD MODEL ======
 @st.cache_resource
 def load_model():
-    base_path = os.path.dirname(os.path.dirname(__file__))
-    model_path = os.path.join(base_path, "model", "model.pkl")
-    model = joblib.load(model_path)
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    MODEL_PATH = os.path.join(BASE_DIR, "..", "rf_model2.pkl")
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
     return model
 
-def feature_engineering(df):
-    """Lakukan feature engineering yang sama seperti di training."""
-    if 'Projects_Handled' in df.columns and 'Years_at_Company' in df.columns:
-        df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
-        df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
-        df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
-        df['Project_Level'] = pd.qcut(df['Projects_per_Years'], q=4, labels=['Low','Moderate','High','Very High'])
-    if 'Training_Hours' in df.columns:
-        df['Training_Level'] = pd.qcut(df['Training_Hours'], q=5, labels=['Very Low','Low','Moderate','High','Very High'])
-    if 'Leadership_Score' in df.columns:
-        df['Leadership_Level'] = pd.qcut(df['Leadership_Score'], q=4, labels=['Low','Medium','High','Very High'])
-    if 'Years_at_Company' in df.columns:
-        df['Tenure_Level'] = pd.qcut(df['Years_at_Company'], q=4, labels=['New','Mid','Senior','Veteran'])
-    if 'Age' in df.columns:
-        df['Age_Group'] = pd.qcut(df['Age'], q=4, labels=['Young','Early Mid','Late Mid','Senior'])
-    return df
 
-def show_prediction_page():
-    st.title("🔮 Prediction & Rekomendasi")
+# ====== STYLE ======
+st.markdown("""
+    <style>
+    .main {
+        background-color: #ffffff;
+    }
+    .upload-box {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background-color: #f9f9f9;
+    }
+    .highlight {
+        color: #4B0082;
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    st.markdown("Unggah file data karyawan (.csv) untuk diprediksi apakah layak promosi.")
-    uploaded_file = st.file_uploader("Upload file CSV", type=["csv"])
 
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file, sep=';')
-        st.write("Data yang diunggah:")
-        st.dataframe(df, height=400, use_container_width=False)
+# ====== PAGE TITLE ======
+st.title("🔮 Prediction & Rekomendasi")
+st.write("Unggah file data karyawan (.csv) untuk diprediksi apakah layak promosi.")
 
+
+# ====== FILE UPLOAD ======
+uploaded_file = st.file_uploader("Upload file CSV", type=["csv"], label_visibility="collapsed")
+
+if uploaded_file is None:
+    st.markdown("""
+        <div class="upload-box">
+            <p>📂 <b>Drag and drop file di sini</b> atau klik <span class="highlight">Browse files</span></p>
+            <p style="color:gray; font-size:13px;">Limit 200MB per file • CSV</p>
+        </div>
+    """, unsafe_allow_html=True)
+else:
+    try:
+        df = pd.read_csv(uploaded_file)
+        st.success(f"✅ File berhasil diunggah: **{uploaded_file.name}**")
+        st.markdown("---")
+
+        # ====== LOAD MODEL ======
         model = load_model()
 
-        # 🧩 Feature engineering
-        df = feature_engineering(df)
-        df_display = df.copy()  # simpan versi lengkap untuk ditampilkan
-
-        # 🧩 Samakan kolom dengan model
-        expected_cols = model.feature_names_in_
-        missing_cols = [col for col in expected_cols if col not in df.columns]
+        # ====== CEK KOMPATIBILITAS FITUR ======
+        expected_features = model.feature_names_in_
+        missing_cols = [col for col in expected_features if col not in df.columns]
 
         if missing_cols:
-            st.warning(f"Menambahkan kolom yang hilang: {missing_cols}")
-            for col in missing_cols:
-                df[col] = 0
+            st.error(f"❌ Kolom berikut hilang di file kamu: {', '.join(missing_cols)}")
+        else:
+            X_new = df[expected_features]
 
-        df_model = df[expected_cols]  # versi buat model
+            # ====== PREDIKSI ======
+            preds = model.predict(X_new)
+            probs = model.predict_proba(X_new)[:, 1] * 100
 
-        # 🔮 Prediksi
-        pred = model.predict(df_model)
-        df_display['promotion_prediction'] = pred  # tambahkan hasil prediksi ke versi tampilan
+            df["Prediction"] = preds
+            df["Probability"] = probs
+            df["Recommendation"] = np.where(df["Probability"] >= 70, "Promote", "Not Ready")
 
-        # 🚫 Hilangkan kolom log agar tampilan lebih bersih
-        if 'Projects_per_Years_log' in df_display.columns:
-            df_display = df_display.drop(columns=['Projects_per_Years_log'])
+            # ====== HASIL ======
+            st.markdown("### 📋 Hasil Prediksi")
+            st.write("Berikut hasil prediksi kelayakan promosi untuk data yang kamu unggah:")
 
-        st.success("✅ Prediksi selesai!")
-        st.dataframe(df_display, height=400, use_container_width=False)
-        
-        st.subheader("📈 Rekomendasi")
-        st.markdown("""
-        - Tingkatkan **leadership score** dan **training score** untuk karyawan yang belum layak promosi.  
-        - Evaluasi ulang performa tahunan dan kontribusi proyek besar.
-        """)
+            def highlight_recommendation(val):
+                color = "#b6e7a6" if val == "Promote" else "#f8c8c8"
+                return f"background-color: {color}"
 
-show_prediction_page()
+            st.dataframe(
+                df.style
+                .applymap(highlight_recommendation, subset=["Recommendation"])
+                .format({"Probability": "{:.2f}%"})
+            )
+
+            # ====== DOWNLOAD HASIL ======
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="💾 Download Hasil Prediksi",
+                data=csv,
+                file_name="hasil_prediksi_promosi.csv",
+                mime="text/csv"
+            )
+
+            # ====== CATATAN ======
+            st.markdown("""
+            <p style='color:gray; font-size:13px;'>
+            Kolom <b>Probability</b> menunjukkan keyakinan model terhadap kelayakan promosi.  
+            Nilai ≥ 70% → direkomendasikan <b>Promote</b>.
+            </p>
+            """, unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat membaca file: {e}")
