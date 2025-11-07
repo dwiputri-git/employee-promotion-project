@@ -142,7 +142,7 @@ with colD:
 # 📋 Sample Data Table
 # ============================================================
 st.divider()
-st.subheader("📋 Sample Data dengan Prediksi")
+st.subheader("📋 Historical Prediction")
 
 # Format angka biar rapi
 numeric_cols = df_pred.select_dtypes(include=["float", "int"]).columns
