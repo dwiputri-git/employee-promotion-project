@@ -23,16 +23,57 @@ def feature_engineering(df):
         df['Projects_per_Years'] = df['Projects_Handled'] / df['Years_at_Company']
         df['Projects_per_Years'].replace([np.inf, -np.inf], 0, inplace=True)
         df['Projects_per_Years_log'] = np.log1p(df['Projects_per_Years'])
-        df['Project_Level'] = pd.qcut(df['Projects_per_Years'], q=4, labels=['Low','Moderate','High','Very High'])
+        try:
+            df['Project_Level'] = pd.qcut(
+                df['Projects_per_Years'], q=4,
+                labels=['Low', 'Moderate', 'High', 'Very High'],
+                duplicates='drop'
+            )
+        except Exception:
+            df['Project_Level'] = 'Unknown'
+    
     if 'Training_Hours' in df.columns:
-        df['Training_Level'] = pd.qcut(df['Training_Hours'], q=5, labels=['Very Low','Low','Moderate','High','Very High'])
+        try:
+            df['Training_Level'] = pd.qcut(
+                df['Training_Hours'], q=5,
+                labels=['Very Low', 'Low', 'Moderate', 'High', 'Very High'],
+                duplicates='drop'
+            )
+        except Exception:
+            df['Training_Level'] = 'Unknown'
+    
     if 'Leadership_Score' in df.columns:
-        df['Leadership_Level'] = pd.qcut(df['Leadership_Score'], q=4, labels=['Low','Medium','High','Very High'])
+        try:
+            df['Leadership_Level'] = pd.qcut(
+                df['Leadership_Score'], q=4,
+                labels=['Low', 'Medium', 'High', 'Very High'],
+                duplicates='drop'
+            )
+        except Exception:
+            df['Leadership_Level'] = 'Unknown'
+    
     if 'Years_at_Company' in df.columns:
-        df['Tenure_Level'] = pd.qcut(df['Years_at_Company'], q=4, labels=['New','Mid','Senior','Veteran'])
+        try:
+            df['Tenure_Level'] = pd.qcut(
+                df['Years_at_Company'], q=4,
+                labels=['New', 'Mid', 'Senior', 'Veteran'],
+                duplicates='drop'
+            )
+        except Exception:
+            df['Tenure_Level'] = 'Unknown'
+    
     if 'Age' in df.columns:
-        df['Age_Group'] = pd.qcut(df['Age'], q=4, labels=['Young','Early Mid','Late Mid','Senior'])
+        try:
+            df['Age_Group'] = pd.qcut(
+                df['Age'], q=4,
+                labels=['Young', 'Early Mid', 'Late Mid', 'Senior'],
+                duplicates='drop'
+            )
+        except Exception:
+            df['Age_Group'] = 'Unknown'
+    
     return df
+
 
 
 # ====================== PAGE TITLE ======================
