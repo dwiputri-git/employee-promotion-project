@@ -49,23 +49,28 @@ def show_model_analysis():
     st.markdown("---")
 
     # ============================
-    # 📉 CONFUSION MATRIX (MANUAL)
+    # 📉 CONFUSION MATRIX
     # ============================
     st.subheader("📉 Confusion Matrix")
 
-    # nilai manual (ganti sesuai hasil modelmu)
-    cm_data = [[550, 30],
-               [45, 120]]
-    labels = ["Not Promoted", "Promoted"]
+    # Nilai manual sesuai model
+    conf_matrix = np.array([[124, 9],
+                        [46, 9]])
+    percentages = np.array([[66.0, 4.8],
+                        [24.5, 4.8]])
 
-    fig, ax = plt.subplots(figsize=(4, 3))
-    sns.heatmap(cm_data, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, cbar=False, ax=ax)
-    ax.set_xlabel("Predicted Label")
-    ax.set_ylabel("True Label")
-    st.pyplot(fig)
-
+    fig, ax = plt.subplots(figsize=(4, 4))
+    sns.heatmap(conf_matrix, annot=False, fmt="d", cmap="Blues", cbar=False, ax=ax)
     st.markdown("---")
-
+    # Tambah label angka + persentase
+    for i in range(2):
+        for j in range(2):
+            ax.text(j + 0.5, i + 0.5, f"{conf_matrix[i, j]}\n({percentages[i, j]}%)",
+                    ha='center', va='center', color='white' if conf_matrix[i, j] > 30 else 'black', fontsize=11)
+    
+    ax.set_xlabel("Predicted Label")
+    ax.set_ylabel("Actual Label")
+    st.pyplot(fig)
     # ============================
     # 📈 ROC CURVE (MANUAL)
     # ============================
