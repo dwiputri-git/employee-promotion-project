@@ -22,27 +22,24 @@ st.markdown("""
     
     .main-header {
         font-size: 2.5rem;
-        color: #8b5cf6; /* A brighter, contrasting purple for dark mode */
+        color: #8b5cf6; 
         text-align: center;
         margin-bottom: 2rem;
     }
     
-    /* Darker card background for contrast, and a bright accent border */
     .metric-card {
-        background-color: #1f2a37; /* Slightly lighter than the main background */
+        background-color: #1f2a37;
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #38bdf8; /* Vibrant light blue/cyan accent */
-        color: #f0f0f0; /* Ensure text inside the card is light */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+        border-left: 4px solid #38bdf8;
+        color: #f0f0f0; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
     }
     
-    /* Ensure general text colors are light */
     h1, h2, h3, h4, p, label, .stText {
         color: #f0f0f0 !important;
     }
     
-    /* Adjust Streamlit's native elements text color (e.g., Markdown blocks) */
     div[data-testid="stMarkdownContainer"] {
         color: #f0f0f0;
     }
@@ -54,7 +51,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Welcome page
-st.markdown('<h1 class="main-header">Employee Promotion Prediction</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">EMPLOYEE PROMOTION PREDICTION</h1>', unsafe_allow_html=True)
 
 st.markdown("""
 ## Welcome!
