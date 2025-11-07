@@ -17,10 +17,10 @@ def show_model_analysis():
     """)
 
     # ============================
-    # 📈 MANUAL METRICS SUMMARY
+    # 📈 METRICS SUMMARY
     # ============================
     st.markdown("### 📊 Model Performance Summary")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(5)
 
     card_style = """
         background-color: #f5f9ff;
@@ -39,11 +39,12 @@ def show_model_analysis():
     """
 
     # kamu bisa ubah angkanya manual di sini
-    col1.markdown(metric_html("Accuracy", "0.920"), unsafe_allow_html=True)
-    col2.markdown(metric_html("Precision", "0.885"), unsafe_allow_html=True)
-    col3.markdown(metric_html("Recall", "0.837"), unsafe_allow_html=True)
-    col4.markdown(metric_html("F1-Score", "0.860"), unsafe_allow_html=True)
-    col5.markdown(metric_html("AUC", "0.960"), unsafe_allow_html=True)
+    col1.markdown(metric_html("Accuracy", "0.707"), unsafe_allow_html=True)
+    col2.markdown(metric_html("Precision", "0.5"), unsafe_allow_html=True)
+    col3.markdown(metric_html("Recall", "0.164"), unsafe_allow_html=True)
+    col4.markdown(metric_html("F1-Score", "0.247"), unsafe_allow_html=True)
+    col5.markdown(metric_html("ROC AUC", "0.506"), unsafe_allow_html=True)
+    col5.markdown(metric_html("PR AUC", "0.347"), unsafe_allow_html=True)
 
     st.markdown("---")
 
