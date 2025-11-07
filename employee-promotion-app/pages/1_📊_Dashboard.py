@@ -39,16 +39,6 @@ df = load_data()
 # -----------------------------
 # ✅ Generate Predictions (+ Confidence)
 # -----------------------------
-THRESHOLD = 0.4 
-
-def prob_to_confidence_label(p: float, thr: float = THRESHOLD) -> str:
-    dist = abs(p - thr)
-    if dist >= 0.30:
-        return "High"
-    elif dist >= 0.10:
-        return "Medium"
-    else:
-        return "Low"
 
 @st.cache_data
 def generate_predictions(df):
@@ -61,18 +51,15 @@ def generate_predictions(df):
     df["Prediction"] = preds
     df["Probability"] = probs
 
-    # --- Confidence label
-    df["Confidence"] = df["Probability"].apply(prob_to_confidence_label)
 
     # --- Final Recommendation Logic
     def final_recommendation(row):
         p = row["Probability"]
-        conf = row["Confidence"]
-        if p >= 0.7 and conf == "High":
+        if p >= 0.7 :
             return "Promote"
         elif 0.5 <= p < 0.7:
             return "Promote (Need Review)"
-        elif p < 0.5 and conf == "Low":
+        elif p < 0.5
             return "Not Ready"
         else:
             return "Not Ready"
