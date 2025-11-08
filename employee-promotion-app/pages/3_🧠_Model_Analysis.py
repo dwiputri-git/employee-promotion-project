@@ -156,8 +156,8 @@ def show_model_analysis():
     # === Model Info ===
     st.markdown("### Model Information")
     col1, col2, col3 = st.columns(3)
-    col1.metric("Model Type", type(model).__name__)
-    col2.metric("Training Data", f"{len(df):,} samples")
+    col1.metric("Model Type", f"Random Forest")
+    col2.metric("Test Data", f"{len(df):,} samples")
     col3.metric("Features", f"{len(feature_columns)}")
 
     # === Metrics ===
